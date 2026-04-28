@@ -6,6 +6,7 @@ import sendOtpToEmail from "../services/emailService";
 import { sendOtpToNumber, verifyOtpNumber } from "../services/twilio";
 import generateToken from "../utils/generateToken";
 import { uploadToCloudinary } from "../config/upload";
+import Conversation from "../models/conversation.model";
 
 export const sendOtp = async (req: Request, res: Response) => {
 
@@ -85,8 +86,10 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
     res.cookie("auth_token", token, {
       httpOnly: true,
-      maxAge: 365 * 24 * 60 * 60 * 1000
-    })
+      maxAge: 365 * 24 * 60 * 60 * 1000,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+    });
     return response(res, 200, 'otp verified sucessfully', { token, user })
 
   } catch (error) {
@@ -119,5 +122,67 @@ export const updateProfile = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     return response(res, 500, 'internal server error');
+  }
+}
+
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.userId;
+    if (!userId) {
+      return response(res, 401, "You are not autheticated");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return response(res, 404, "user not found");
+
+    return response(res, 200, "you are autheticated", user);
+
+  } catch (error) {
+    console.log(error);
+    return response(res, 500, 'internal server error');
+  }
+}
+export const logout = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("auth_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    return response(res, 200, "Logged out successfully");
+  } catch (error) {
+    console.error(error);
+    return response(res, 500, "Internal server error");
+  }
+};
+
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const loggedInuserId = req.user.userId;
+
+    const users = await User.find({ _id: { $ne: loggedInuserId } }).select("phoneNumber phoneSuffix username profilePictures lastSeen isOnline about").lean();
+
+    const conversations = await Conversation.find({
+      participants: loggedInuserId
+    })
+      .populate("lastMessage", "sender receiver content createdAt")
+      .lean();
+
+    const userChat = users.map((user) => {
+      const chat = conversations.find((c) =>
+        c.participants.some((p) => p.equals(user._id))
+      );
+
+      return {
+        ...user,
+        conversation: chat || 0,
+      };
+    });
+
+    return response(res, 200, "user retrived successfully", userChat);
+  } catch (error) {
+    console.error(error);
+    return response(res, 500, "Internal server error");
   }
 }

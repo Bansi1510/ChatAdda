@@ -4,6 +4,7 @@ import cors from "cors"
 import dotenv from "dotenv"
 import connectDB from "./config/db";
 import userRouter from "./routes/user.routes";
+import chatRouter from "./routes/chat.routes";
 
 dotenv.config({});
 
@@ -19,7 +20,7 @@ app.use(cors({
 }));
 
 app.use("/api/user", userRouter);
-
+app.use("/api/chat", chatRouter);
 
 const PORT = process.env.BACKEND_PORT;
 
