@@ -1,15 +1,16 @@
 import mongoose from "mongoose";
+import { symlink } from "node:fs";
 
 export interface IReaction {
   user: mongoose.Types.ObjectId,
-  emoji: String,
+  emoji: string,
 }
 export interface IMessage {
-  conversaction: mongoose.Types.ObjectId,
+  conversation: mongoose.Types.ObjectId,
   sender: mongoose.Types.ObjectId,
   receiver: mongoose.Types.ObjectId,
-  content: String,
-  imageOrVideoUrl: String,
+  content: string,
+  imageOrVideoUrl: string,
   contentType: "image" | "video" | "text",
   reactions: IReaction[],
   messageStatus: string
@@ -18,7 +19,7 @@ export interface IMessage {
 }
 
 const messageSchema = new mongoose.Schema<IMessage>({
-  conversaction: {
+  conversation: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Conversaction",
     required: true
@@ -36,6 +37,9 @@ const messageSchema = new mongoose.Schema<IMessage>({
   content: String,
   imageOrVideoUrl: {
     type: String,
+  },
+  contentType: {
+    type: String,
     enum: ["image", "video", "text"]
   },
   reactions: [
@@ -49,7 +53,8 @@ const messageSchema = new mongoose.Schema<IMessage>({
   ],
   messageStatus: {
     type: String,
-    default: "send"
+    default: "send",
+    enum: ["send", "delivered", "read"]
   }
 }, { timestamps: true });
 

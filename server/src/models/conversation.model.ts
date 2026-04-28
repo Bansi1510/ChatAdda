@@ -9,7 +9,7 @@ export interface IConversaction {
   updatedAt: Date,
 }
 
-const conversactionSchema = new mongoose.Schema<IConversaction>({
+const conversationSchema = new mongoose.Schema<IConversaction>({
   participants: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -19,7 +19,7 @@ const conversactionSchema = new mongoose.Schema<IConversaction>({
   ],
   lastMessage: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    ref: "Message"
   },
   unreadCount: {
     type: Number,
@@ -27,6 +27,6 @@ const conversactionSchema = new mongoose.Schema<IConversaction>({
   }
 }, { timestamps: true });
 
-const Conversaction = mongoose.model("Conversaction", conversactionSchema);
+const Conversation = mongoose.model("Conversaction", conversationSchema);
 
-export default Conversaction;
+export default Conversation;

@@ -8,7 +8,7 @@ const response = (res: Response, statusCode: number, message: string, data: obje
   }
 
   const ResponseObj = {
-    status: statusCode > 400 ? 'success' : 'error',
+    status: statusCode < 400 ? 'success' : 'error',
     message,
     data
   }
