@@ -5,6 +5,7 @@ import response from "../utils/responseHandler";
 import sendOtpToEmail from "../services/emailService";
 import { sendOtpToNumber, verifyOtpNumber } from "../services/twilio";
 import generateToken from "../utils/generateToken";
+import { uploadToCloudinary } from "../config/upload";
 
 export const sendOtp = async (req: Request, res: Response) => {
 
@@ -80,13 +81,40 @@ export const verifyOtp = async (req: Request, res: Response) => {
       user.isVerified = true;
       await user.save();
     }
-    const token = generateToken(user?._id.toString());
+    const token = await generateToken(user?._id.toString());
 
     res.cookie("auth_token", token, {
       httpOnly: true,
       maxAge: 365 * 24 * 60 * 60 * 1000
     })
     return response(res, 200, 'otp verified sucessfully', { token, user })
+
+  } catch (error) {
+    console.log(error);
+    return response(res, 500, 'internal server error');
+  }
+}
+
+export const updateProfile = async (req: Request, res: Response) => {
+  const { username, agreed, about } = req.body;
+  const userId = req.user.userId;
+  try {
+    const user = await User.findById(userId);
+    const file = req.file;
+    if (!user) return response(res, 401, 'you are not autheticated')
+    if (file) {
+      const fileUrl = await uploadToCloudinary(file.path);
+      if (fileUrl) user.profilePictures = fileUrl;
+    } else if (req.body.profilePictures) {
+      user.profilePictures = req.body.profilePictures
+    }
+    if (username) user.username = username;
+    if (agreed) user.agreed = agreed;
+    if (about) user.about = about;
+
+    await user.save();
+
+    return response(res, 200, 'user profile updated', user);
 
   } catch (error) {
     console.log(error);
