@@ -39,7 +39,15 @@ export const createStatus = async (req: Request, res: Response) => {
       populate("user", "username profilePictures").
       populate("viewers", "username profilePictures");
 
-    //socket later
+    //socket 
+    if (req.io && req.socketUserMap) {
+      //show status to all user
+      for (const [connectedUserId, socketId] of req.socketUserMap) {
+        if (connectedUserId !== senderId) {
+          req.io.to(socketId).emit("new_status", populateStatus);
+        }
+      }
+    }
 
     return response(res, 201, "status created", populateStatus);
   } catch (error) {
@@ -80,7 +88,24 @@ export const viewStatus = async (req: Request, res: Response) => {
       const updateStatus = await Status.findById(statusId).
         populate("user", "username profilePictures").
         populate("viewers", "username profilePictures")
-      //socket.io
+
+      //socket
+
+      if (req.io && req.socketUserMap) {
+        //show status
+        const statusOwnerStatusId = req.socketUserMap.get(status.user._id.toString());
+        if (statusOwnerStatusId) {
+          const viewStatusData = {
+            statusId,
+            viewerId: userId,
+            totalViewers: updateStatus?.viewers.length,
+            viewers: updateStatus?.viewers
+          }
+          req.io.to(statusOwnerStatusId).emit("view_status", viewStatusData)
+        } else {
+          console.log("status owner not connected ")
+        }
+      }
     } else {
       console.log("status view already")
     }
@@ -104,6 +129,15 @@ export const deleteStatus = async (req: Request, res: Response) => {
 
     await status.deleteOne();
 
+    //socket
+
+    if (req.io && req.socketUserMap) {
+      for (const [connectedUserId, socketId] of req.socketUserMap) {
+        if (connectedUserId !== userId) {
+          req.io.to(socketId).emit("status_delete", statusId);
+        }
+      }
+    }
 
     return response(res, 200, 'status  deleted ');
   } catch (error) {

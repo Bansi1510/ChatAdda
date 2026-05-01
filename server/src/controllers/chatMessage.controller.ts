@@ -42,7 +42,7 @@ export const chatMessageSend = async (req: Request, res: Response) => {
       contentType,
       imageOrVideoUrl,
       messageStatus
-    })
+    });
 
     await message.save();
 
@@ -56,7 +56,15 @@ export const chatMessageSend = async (req: Request, res: Response) => {
       populate("receiver", "username profilePictures");
 
 
-    //socket later
+    //socket
+    if (req.io && req.socketUserMap) {
+      const receiverSocketId = req.socketUserMap.get(receiverId);
+      if (receiverSocketId) {
+        req.io.to(receiverSocketId).emit("receive_message", populateMessage);
+        message.messageStatus = "delivered";
+        await message.save();
+      }
+    }
 
     return response(res, 201, "message send", populateMessage);
   } catch (error) {
@@ -123,7 +131,7 @@ export const markAsRead = async (req: Request, res: Response) => {
     const { messageIds } = req.body;
     const userId = req.user.userId;
 
-    let message = await Message.find({
+    let messages = await Message.find({
       _id: { $in: messageIds }, receiver: userId
     })
 
@@ -133,8 +141,23 @@ export const markAsRead = async (req: Request, res: Response) => {
     }, {
       $set: { messageStatus: "read" }
     });
-    //socket.io
-    return response(res, 200, "message read", message);
+    //socket
+    if (req.io && req.socketUserMap) {
+      for (const message of messages) {
+        const senderSocketId = req.socketUserMap.get(message.sender._id.toString());
+
+        if (senderSocketId) {
+          const updateMessage = {
+            _id: message._id,
+            messageStatus: "read"
+          };
+          req.io.to(senderSocketId).emit("message_read", updateMessage);
+
+          await message.save();
+        }
+      }
+    }
+    return response(res, 200, "message read", messages);
   } catch (error) {
     console.error(error);
     return response(res, 500, "Internal server error");
@@ -155,8 +178,13 @@ export const deleteMessage = async (req: Request, res: Response) => {
 
     await message.deleteOne();
 
-    //socket.id
-
+    //socket
+    if (req.io && req.socketUserMap) {
+      const receiverSocketId = req.socketUserMap.get(message.receiver._id.toString());
+      if (receiverSocketId) {
+        req.io.to(receiverSocketId).emit("message_delete", messageId);
+      }
+    }
     return response(res, 200, "message deleted");
   } catch (error) {
     console.error(error);
