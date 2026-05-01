@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { symlink } from "node:fs";
 
 export interface IReaction {
   user: mongoose.Types.ObjectId,

@@ -24,8 +24,7 @@ export const createStatus = async (req: Request, res: Response) => {
 
     } else if (content?.trim()) finalContentType = 'text';
     else return response(res, 400, 'enter message first');
-
-    const expiresAt = new Date();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const status = new Status({
       user: senderId,
@@ -51,10 +50,13 @@ export const createStatus = async (req: Request, res: Response) => {
 
 export const getStatuses = async (req: Request, res: Response) => {
   try {
+    const all = await Status.find();
+    console.log(all);
     const statuses = await Status.find({
       expiresAt: { $gt: new Date() }
     }).populate("user", "username profilePictures").
       populate("viewers", "username profilePictures").sort({ createdAt: -1 });
+    console.log(statuses)
 
     return response(res, 200, "status retrived successfully", statuses)
   } catch (error) {
