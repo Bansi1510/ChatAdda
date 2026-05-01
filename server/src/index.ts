@@ -5,6 +5,9 @@ import dotenv from "dotenv"
 import connectDB from "./config/db";
 import userRouter from "./routes/user.routes";
 import chatRouter from "./routes/chat.routes";
+import http from "http";
+import initializeSocket from "./services/socket";
+import statusRouter from "./routes/status.routes";
 
 dotenv.config({});
 
@@ -19,12 +22,26 @@ app.use(cors({
   credentials: true
 }));
 
+//create server
+const server = http.createServer(app);
+
+const io = initializeSocket(server);
+
+//apply for all routes
+app.use((req, res, next) => {
+  req.io = io;
+  req.socketUserMap = io.socketUserMap
+  next();
+});
+
+
 app.use("/api/user", userRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api/status", statusRouter);
+
 
 const PORT = process.env.BACKEND_PORT;
-
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   await connectDB();
   console.log(`backend run on port :${PORT} `);
 });
