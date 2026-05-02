@@ -1,13 +1,17 @@
 
-
+import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import Login from "./pages/auth/Login"
 
 function App() {
-
+  const appRouter = createBrowserRouter([
+    {
+      path: "/",
+      element: <Login />
+    }
+  ])
   return (
     <>
-      <h1 className="text-3xl text-red-500 font-bold">
-        Tailwind Working 🚀
-      </h1>
+      <RouterProvider router={appRouter}></RouterProvider>
     </>
   )
 }
