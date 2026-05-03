@@ -4,24 +4,27 @@ import { persist } from "zustand/middleware";
 
 type LoginState = {
   step: number;
-  userPhoneData: string | null;
-
+  email: string | null
+  phoneNumber: string | null;
+  phoneSuffix: string | null;
   setStep: (step: number) => void;
-  setUserPhoneData: (data: string) => void;
+  setUserPhoneData: (data: object) => void;
   resetLoginState: () => void;
 };
 const useLoginStore = create<LoginState>()(
   persist(
     (set) => ({
       step: 1,
-      userPhoneData: null,
+      email: null,
+      phoneNumber: null,
+      phoneSuffix: null,
       setStep: (step) => set({ step }),
-      setUserPhoneData: (data) => set({ userPhoneData: data }),
-      resetLoginState: () => set({ step: 1, userPhoneData: null })
+      setUserPhoneData: (data) => set(data),
+      resetLoginState: () => set({ step: 1, phoneNumber: null })
     }),
     {
       name: "login-storage",
-      partialize: (state) => ({ step: state.step, userPhoneData: state.userPhoneData })
+      partialize: (state) => ({ step: state.step, phoneNumber: state.phoneNumber })
     }
   )
 )

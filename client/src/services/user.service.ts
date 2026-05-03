@@ -1,7 +1,12 @@
 import axios from "axios";
 import baseUrl from "./baseApi.service";
 
-export const sendOtpAPI = async ({ email, phoneNumber, phoneSuffix }: { email: string | null; phoneNumber: string | null; phoneSuffix: string | null }) => {
+type SendOtpPayload = {
+  email?: string;
+  phoneNumber?: string;
+  phoneSuffix?: string;
+};
+export const sendOtpAPI = async ({ email, phoneNumber, phoneSuffix }: SendOtpPayload) => {
   try {
     const res = await baseUrl.post(`/user/send-otp`, { email, phoneNumber, phoneSuffix });
     return res.data;

@@ -40,7 +40,7 @@ export const sendOtp = async (req: Request, res: Response) => {
 
     await user.save();
     await sendOtpToNumber(fullNumber);
-    return response(res, 200, 'otp send successfully', user);
+    return response(res, 200, 'otp send successfully on your mobile number', user);
   } catch (error) {
     console.log(error);
     return response(res, 500, 'internal server error');
