@@ -99,7 +99,8 @@ export const verifyOtp = async (req: Request, res: Response) => {
 }
 
 export const updateProfile = async (req: Request, res: Response) => {
-  const { username, agreed, about } = req.body;
+  const { username, about } = req.body;
+  const agreed = req.body.agreed === "true";
   const userId = req.user.userId;
   try {
     const user = await User.findById(userId);

@@ -17,9 +17,16 @@ export const sendOtpAPI = async ({ email, phoneNumber, phoneSuffix }: SendOtpPay
   }
 }
 
-export const verifyOtpAPI = async ({ email, phoneNumber, phoneSuffix, otp }: { email: string | null; phoneNumber: string | null; phoneSuffix: string | null, otp: string }) => {
+type verifyOtpPayload = {
+  email?: string;
+  phoneNumber?: string;
+  phoneSuffix?: string;
+  otp: string
+}
+export const verifyOtpAPI = async ({ email, phoneNumber, phoneSuffix, otp }: verifyOtpPayload) => {
   try {
     const res = await baseUrl.post(`/user/verify-otp`, { email, phoneNumber, phoneSuffix, otp });
+    console.log(res)
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -29,13 +36,8 @@ export const verifyOtpAPI = async ({ email, phoneNumber, phoneSuffix, otp }: { e
 }
 
 
-type updateDataType = {
-  username: string | null,
-  agreed: boolean | null,
-  about: string | null,
-  image: File | null
-}
-export const updateUserProfile = async (updateData: updateDataType) => {
+
+export const updateUserProfile = async (updateData: FormData) => {
   try {
     const res = await baseUrl.put("/user/update-profile", updateData);
     return res.data;
@@ -45,6 +47,8 @@ export const updateUserProfile = async (updateData: updateDataType) => {
     }
   }
 }
+
+
 
 
 export const checkUserAutheticatedAPI = async () => {

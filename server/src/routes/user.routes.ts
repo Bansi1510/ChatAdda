@@ -8,7 +8,7 @@ const userRouter: Router = express.Router();
 
 userRouter.post("/send-otp", sendOtp);
 userRouter.post('/verify-otp', verifyOtp);
-userRouter.put("/update-profile", isAuthicated, upload.single("image"), updateProfile);
+userRouter.put("/update-profile", isAuthicated, upload.single("media"), updateProfile);
 userRouter.get("/log-out", logout);
 userRouter.get("/profile", isAuthicated, getUserById);
 userRouter.get("/users", isAuthicated, getAllUsers);
