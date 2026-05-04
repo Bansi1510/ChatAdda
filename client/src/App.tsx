@@ -1,10 +1,11 @@
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
-import Login from "./pages/auth/Login"
 import { ToastContainer } from "react-toastify"
 import useThemeStore from "./store/useThemeStore";
 import { useMemo } from "react";
 import Home from "./pages/Home";
+import ProtectedRoute, { PublicRoute } from "./protectedRoute";
+import Login from "./pages/Login";
 
 function App() {
   const { theme } = useThemeStore();
@@ -15,11 +16,23 @@ function App() {
       createBrowserRouter([
         {
           path: "/",
-          element: <Home />
+          element: <ProtectedRoute />,
+          children: [
+            {
+              path: "/",
+              element: <Home />
+            }
+          ]
+
         },
         {
-          path: "/login",
-          element: <Login />,
+          element: <PublicRoute />,
+          children: [
+            {
+              path: "/login",
+              element: <Login />
+            }
+          ]
         },
 
       ]),

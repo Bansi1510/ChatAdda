@@ -1,17 +1,18 @@
 import React, { useRef, useState } from "react";
-import useLoginStore from "../../store/useLoginStore";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import countries from "../../utils/countries";
-import avatars from "../../utils/avatars";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import useThemeStore from "../../store/useThemeStore";
-import { sendOtpAPI, updateUserProfile, verifyOtpAPI } from "../../services/user.service";
 import { toast } from "react-toastify";
-import Loader from "../../utils/Loader";
-import Spinner from "../../utils/spinner";
-import useUserStore from "../../store/useUserStore";
+import type { Country } from "../utils/countries";
+import useLoginStore from "../store/useLoginStore";
+import useUserStore from "../store/useUserStore";
+import useThemeStore from "../store/useThemeStore";
+import countries from "../utils/countries";
+import avatars from "../utils/avatars";
+import { sendOtpAPI, updateUserProfile, verifyOtpAPI } from "../services/user.service";
+import Loader from "../utils/Loader";
+import Spinner from "../utils/spinner";
 
 
 
@@ -60,7 +61,7 @@ const profileValidationSchema = yup.object().shape({
 const Login: React.FC = () => {
   const { step, setStep, setUserPhoneData } =
     useLoginStore();
-  const { setUser, user } = useUserStore();
+  const { setUser } = useUserStore();
   const { theme, setTheme } = useThemeStore();
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -230,7 +231,7 @@ const Login: React.FC = () => {
           navigate("/")
         }
         toast.success(res.message);
-        setUser(res.user);
+        setUser(res.data.user);
         setStep(3);
       } else {
         toast.error(res.message);
@@ -353,7 +354,7 @@ const Login: React.FC = () => {
                       : "bg-white border-gray-200"
                       }`}
                   >
-                    {countries.map((c) => (
+                    {countries.map((c: Country) => (
                       <div
                         key={c.alpha2}
                         onClick={() => {
@@ -476,7 +477,7 @@ const Login: React.FC = () => {
 
               {/* Avatar options */}
               <div className="flex gap-3 mt-4 flex-wrap justify-center">
-                {avatars.map((av, i) => (
+                {avatars.map((av: string, i: number) => (
                   <img
                     key={i}
                     src={av}
