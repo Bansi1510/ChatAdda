@@ -1,4 +1,10 @@
-const countries = [
+export interface Country {
+  dialCode: string;
+  flag: string;
+  alpha2: string;
+  name: string;
+}
+const countries: Country[] = [
   { dialCode: "+91", flag: "🇮🇳", alpha2: "IN", name: "India" },
   { dialCode: "+7", flag: "🇷🇺", alpha2: "RU", name: "Russia" },
   { dialCode: "+7", flag: "🇰🇿", alpha2: "KZ", name: "Kazakhstan" },
