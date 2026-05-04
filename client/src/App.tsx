@@ -4,6 +4,7 @@ import Login from "./pages/auth/Login"
 import { ToastContainer } from "react-toastify"
 import useThemeStore from "./store/useThemeStore";
 import { useMemo } from "react";
+import Home from "./pages/Home";
 
 function App() {
   const { theme } = useThemeStore();
@@ -14,8 +15,13 @@ function App() {
       createBrowserRouter([
         {
           path: "/",
+          element: <Home />
+        },
+        {
+          path: "/login",
           element: <Login />,
         },
+
       ]),
     []
   );
@@ -28,7 +34,7 @@ function App() {
 
       {/* TOAST */}
       <ToastContainer
-        position="top-center"
+        position="top-right"
         autoClose={2500}
         hideProgressBar
         newestOnTop

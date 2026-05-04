@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import useLoginStore from "../../store/useLoginStore";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -7,10 +7,11 @@ import avatars from "../../utils/avatars";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import useThemeStore from "../../store/useThemeStore";
-import { sendOtpAPI } from "../../services/user.service";
+import { sendOtpAPI, updateUserProfile, verifyOtpAPI } from "../../services/user.service";
 import { toast } from "react-toastify";
 import Loader from "../../utils/Loader";
 import Spinner from "../../utils/spinner";
+import useUserStore from "../../store/useUserStore";
 
 
 
@@ -22,7 +23,7 @@ const loginValidationSchema = yup
     phoneNumber: yup
       .string()
       .trim()
-      .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
+      .matches(/^\d{10}$/, { message: "Phone number must be exactly 10 digits", excludeEmptyString: true })
       .nullable()
       .notRequired(),
 
@@ -34,9 +35,11 @@ const loginValidationSchema = yup
       .notRequired(),
   })
   .test(
-    "at-least-one",
+    "one-required",
     "Either email or mobile number required",
-    (value) => !!(value?.phoneNumber || value?.email)
+    (value) => {
+      return !!(value?.phoneNumber || value?.email);
+    }
   );
 
 const otpValidationSchema = yup.object().shape({
@@ -49,13 +52,15 @@ const otpValidationSchema = yup.object().shape({
 const profileValidationSchema = yup.object().shape({
   username: yup.string().required("Username is required"),
   agreed: yup.bool().oneOf([true], "You must agree to the terms"),
+  about: yup.string().trim().max(30, "about must be less then 30 charactres")
 });
 
 /* ---------------- COMPONENT ---------------- */
 
 const Login: React.FC = () => {
-  const { step, setStep, setUserPhoneData, userPhoneData } =
+  const { step, setStep, setUserPhoneData } =
     useLoginStore();
+  const { setUser, user } = useUserStore();
   const { theme, setTheme } = useThemeStore();
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -71,6 +76,9 @@ const Login: React.FC = () => {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   /* ---------------- FORMS ---------------- */
 
@@ -98,7 +106,7 @@ const Login: React.FC = () => {
   } = useForm({
     resolver: yupResolver(profileValidationSchema),
   });
-
+  type profileType = yup.InferType<typeof profileValidationSchema>;
   /* ---------------- THEME ---------------- */
 
   const isDark = theme === "dark";
@@ -135,6 +143,36 @@ const Login: React.FC = () => {
     setProfilePreview(URL.createObjectURL(file));
   };
 
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (e.key === "Backspace") {
+      if (!otp[index] && index > 0) {
+        inputsRef.current[index - 1]?.focus();
+      }
+    }
+  };
+  const handleOtpChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const value = e.target.value;
+
+    // ❌ block non-digits
+    if (!/^\d?$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    setOtpValue("otp", newOtp.join(""));
+
+    // 👉 move forward
+    if (value && index < otp.length - 1) {
+      inputsRef.current[index + 1]?.focus();
+    }
+  };
   const onLoginSubmit = async (data: loginData) => {
     try {
       setIsSendingOtp(true);
@@ -173,8 +211,72 @@ const Login: React.FC = () => {
     }
   };
 
-  export const onOtpSubmit = async (data: otpType) => {
-    const { } = data;
+  const onOtpSubmit = async (data: otpType) => {
+    const { otp } = data;
+    const userData = useLoginStore.getState();
+
+    try {
+      setIsVerifyingOtp(true)
+      let res;
+      if (userData.email) {
+        res = await verifyOtpAPI({ email: userData.email, otp });
+      } else if (userData.phoneNumber) {
+        res = await verifyOtpAPI({ phoneNumber: userData.phoneNumber, phoneSuffix: userData.phoneSuffix ?? undefined, otp });
+      }
+      if (res.status == "success") {
+        const user = res.data.user;
+        if (user.username && user.profilePictures) {
+          toast.success(`wellcome back in whatsapp`);
+          navigate("/")
+        }
+        toast.success(res.message);
+        setUser(res.user);
+        setStep(3);
+      } else {
+        toast.error(res.message);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+
+  }
+
+  const onUpdateProfile = async (data: profileType) => {
+    try {
+      setIsSavingProfile(true);
+      const { username, agreed, about } = data;
+
+      const formData = new FormData();
+
+      formData.append("username", username);
+      formData.append("about", about ?? "");
+      formData.append("agreed", String(agreed));
+
+      if (profileFile) {
+        formData.append("media", profileFile);
+      } else {
+        formData.append("profilePictures", selectedAvatar);
+      }
+
+      const res = await updateUserProfile(formData);
+
+      if (res.status == "success") {
+        toast.success(res.message);
+        navigate("/");
+
+      }
+
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
+    } finally {
+      setIsSavingProfile(false)
+    }
   }
   /* ---------------- UI ---------------- */
 
@@ -220,7 +322,7 @@ const Login: React.FC = () => {
 
           <p className={`text-sm mt-3 text-center ${textSub}`}>
             {step === 1 && "Enter your phone number or email."}
-            {step === 2 && `OTP sent to ${userPhoneData}`}
+            {step === 2 && `OTP sent to you number`}
             {step === 3 && "Set your name and profile photo."}
           </p>
         </div>
@@ -323,18 +425,15 @@ const Login: React.FC = () => {
               {otp.map((digit, index) => (
                 <input
                   key={index}
+                  ref={(el) => {
+                    inputsRef.current[index] = el;
+                  }}
                   maxLength={1}
                   value={digit}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (!/^[0-9]?$/.test(val)) return;
+                  onChange={(e) => handleOtpChange(e, index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
 
-                    const newOtp = [...otp];
-                    newOtp[index] = val;
-                    setOtp(newOtp);
-
-                    setOtpValue("otp", newOtp.join(""));
-                  }}
+                  inputMode="numeric"
                   className={`w-10 h-12 text-center ${inputBg}`}
                 />
               ))}
@@ -354,7 +453,8 @@ const Login: React.FC = () => {
 
         {/* STEP 3 */}
         {step === 3 && (
-          <form onSubmit={handleProfileSubmit(() => { })}>
+          <form onSubmit={handleProfileSubmit(onUpdateProfile)}>
+            {/* PROFILE IMAGE */}
             <div className="flex flex-col items-center mb-6">
               <div className="relative group">
                 <img
@@ -362,6 +462,7 @@ const Login: React.FC = () => {
                   className="w-28 h-28 rounded-full object-cover"
                 />
 
+                {/* Upload overlay */}
                 <label className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer">
                   📷
                   <input
@@ -373,6 +474,7 @@ const Login: React.FC = () => {
                 </label>
               </div>
 
+              {/* Avatar options */}
               <div className="flex gap-3 mt-4 flex-wrap justify-center">
                 {avatars.map((av, i) => (
                   <img
@@ -382,8 +484,8 @@ const Login: React.FC = () => {
                       setSelectedAvatar(av);
                       setProfilePreview(null);
                     }}
-                    className={`w-12 h-12 rounded-full cursor-pointer border-2 ${selectedAvatar === av && !profilePreview
-                      ? "border-green-500"
+                    className={`w-12 h-12 rounded-full cursor-pointer border-2 transition ${selectedAvatar === av && !profilePreview
+                      ? "border-green-500 scale-105"
                       : "border-transparent"
                       }`}
                   />
@@ -391,31 +493,77 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <input
-              {...profileRegister("username")}
-              placeholder="Your name"
-              className={`w-full px-2 py-3 outline-none focus:border-[#00a884] ${inputBg}`}
-            />
+            {/* USERNAME INPUT */}
+            <div className="w-full mb-4">
+              <label className={`text-sm ${textSub}`}>user name</label>
 
-            {profileErrors.username && (
-              <p className="text-red-500 text-xs">
-                {profileErrors.username.message}
-              </p>
-            )}
+              <input
+                {...profileRegister("username")}
+                placeholder="Enter your name"
+                className={`w-full px-0 py-2 bg-transparent outline-none border-b transition-all duration-200 ${isDark
+                  ? "border-[#2a3942] text-[#d1d7db] focus:border-[#00a884]"
+                  : "border-gray-300 text-[#111b21] focus:border-[#00a884]"
+                  }`}
+              />
 
-            <label className="flex gap-2 mt-4 text-sm">
-              <input type="checkbox" {...profileRegister("agreed")} />
-              Agree to Terms
-            </label>
+              {profileErrors.username && (
+                <p className="text-red-500 text-xs mt-1">
+                  {profileErrors.username.message}
+                </p>
+              )}
+            </div>
+            <div className="w-full mb-4">
+              <label className={`text-sm ${textSub}`}>About</label>
 
-            {profileErrors.agreed && (
-              <p className="text-red-500 text-xs">
-                {profileErrors.agreed.message}
-              </p>
-            )}
+              <input
+                {...profileRegister("about")}
+                placeholder="Say something about yourself"
+                className={`w-full px-0 py-2 bg-transparent outline-none border-b transition-all duration-200 ${isDark
+                  ? "border-[#2a3942] text-[#d1d7db] focus:border-[#00a884]"
+                  : "border-gray-300 text-[#111b21] focus:border-[#00a884]"
+                  }`}
+              />
 
-            <button className={`w-full py-3 rounded-full mt-6 ${btnColor}`}>
-              Save Profile
+              {profileErrors.about && (
+                <p className="text-red-500 text-xs mt-1">
+                  {profileErrors.about.message}
+                </p>
+              )}
+            </div>
+
+            {/* TERMS CHECKBOX */}
+            <div className="mb-4">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...profileRegister("agreed")}
+                  className="accent-green-500"
+                />
+                Agree to Terms
+              </label>
+
+              {profileErrors.agreed && (
+                <p className="text-red-500 text-xs mt-1">
+                  {profileErrors.agreed.message}
+                </p>
+              )}
+            </div>
+
+            {/* SUBMIT BUTTON */}
+            <button
+              type="submit"
+              disabled={isSavingProfile}
+              className={`w-full py-3 rounded-full flex items-center justify-center gap-2 ${btnColor} ${isSavingProfile ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+            >
+              {isSavingProfile ? (
+                <>
+                  <Spinner size={20} />
+                  Saving...
+                </>
+              ) : (
+                "Save Profile"
+              )}
             </button>
           </form>
         )}

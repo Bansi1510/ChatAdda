@@ -6,7 +6,7 @@ import { createStatus, deleteStatus, getStatuses, viewStatus } from "../controll
 
 const statusRouter: Router = express();
 
-statusRouter.post("/", isAuthicated, upload.single("image"), createStatus);
+statusRouter.post("/", isAuthicated, upload.single("media"), createStatus);
 statusRouter.get("/", isAuthicated, getStatuses);
 statusRouter.put("/:statusId/view", isAuthicated, viewStatus);
 statusRouter.delete("/:statusId", isAuthicated, deleteStatus);
