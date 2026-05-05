@@ -6,6 +6,9 @@ import { useMemo } from "react";
 import Home from "./pages/Home";
 import ProtectedRoute, { PublicRoute } from "./protectedRoute";
 import Login from "./pages/Login";
+import User from "./pages/User";
+import Status from "./components/status/Status";
+import Settings from "./components/setting/Settings";
 
 function App() {
   const { theme } = useThemeStore();
@@ -21,6 +24,18 @@ function App() {
             {
               path: "/",
               element: <Home />
+            },
+            {
+              path: "/profile",
+              element: <User />
+            },
+            {
+              path: "/status",
+              element: <Status />
+            },
+            {
+              path: "/settings",
+              element: <Settings />
             }
           ]
 

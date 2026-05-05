@@ -224,14 +224,16 @@ const Login: React.FC = () => {
       } else if (userData.phoneNumber) {
         res = await verifyOtpAPI({ phoneNumber: userData.phoneNumber, phoneSuffix: userData.phoneSuffix ?? undefined, otp });
       }
+
       if (res.status == "success") {
         const user = res.data.user;
         if (user.username && user.profilePictures) {
           toast.success(`wellcome back in whatsapp`);
+
+          setUser(user);
           navigate("/")
         }
         toast.success(res.message);
-        setUser(res.data.user);
         setStep(3);
       } else {
         toast.error(res.message);

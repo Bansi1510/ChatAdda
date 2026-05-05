@@ -56,7 +56,7 @@ export const checkUserAutheticatedAPI = async () => {
     const res = await baseUrl.get("/user/profile");
 
     if (res.data.status === 'success') {
-      return { isAutheticated: true, user: res.data.user }
+      return { isAutheticated: true, user: res.data.data }
     } else if (res.data.status === 'error') {
       return { isAutheticated: false }
     }

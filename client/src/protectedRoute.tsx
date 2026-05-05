@@ -14,7 +14,6 @@ const ProtectedRoute: React.FC = () => {
     const verifyAuth = async () => {
       try {
         const res = await checkUserAutheticatedAPI();
-
         if (res?.user) {
           setUser(res.user);
         } else {
@@ -44,7 +43,7 @@ const ProtectedRoute: React.FC = () => {
 
 export const PublicRoute: React.FC = () => {
   const { isAuthenticated } = useUserStore();
-
+  console.log(isAuthenticated)
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }

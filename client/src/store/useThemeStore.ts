@@ -13,7 +13,7 @@ const useThemeStore = create<ThemeState>()(
       setTheme: (theme) => set({ theme })
     }),
     {
-      name: "login-storage",
+      name: "theme-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )
