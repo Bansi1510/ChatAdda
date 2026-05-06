@@ -1,48 +1,58 @@
 import useLayoutStore from "../store/useLayoutStore";
 import useThemeStore from "../store/useThemeStore";
+import { MessageCircle, CircleDot, Settings } from "lucide-react";
 
-const Sidebar = () => {
-  const selectedContact = useLayoutStore((state) => state.selectedContact);
-  const setSelectedContact = useLayoutStore(
-    (state) => state.setSelectedContact
-  );
-
+const SidebarIcons = () => {
+  const { activeTab, setActivedTab } = useLayoutStore();
   const { theme } = useThemeStore();
+
+  const menuItems = [
+    { id: "chat", icon: MessageCircle },
+    { id: "status", icon: CircleDot },
+  ];
 
   return (
     <div
-      className={`w-full md:w-[30%] border-r ${theme === "dark"
-          ? "bg-[#111b21] border-gray-700 text-white"
-          : "bg-white border-gray-300 text-black"
+      className={`h-screen w-[70px] flex flex-col justify-between items-center py-4 border-r ${theme === "dark"
+        ? "bg-[#202c33] border-gray-700"
+        : "bg-gray-100 border-gray-300"
         }`}
     >
-      {/* Header */}
-      <div
-        className={`p-4 font-bold text-lg border-b ${theme === "dark" ? "border-gray-700" : "border-gray-300"
-          }`}
-      >
-        Chats
+      {/* Top Icons */}
+      <div className="flex flex-col gap-6">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.id}
+              onClick={() => setActivedTab(item.id)}
+              className={`p-3 rounded-full cursor-pointer transition ${activeTab === item.id
+                ? "bg-green-500 text-white"
+                : theme === "dark"
+                  ? "text-gray-300 hover:bg-[#2a3942]"
+                  : "text-gray-700 hover:bg-gray-300"
+                }`}
+            >
+              <Icon size={22} />
+            </div>
+          );
+        })}
       </div>
 
-      {/* Contact List */}
-      <div className="p-2 space-y-2">
-        {[1, 2, 3, 4].map((c) => (
-          <div
-            key={c}
-            onClick={() => setSelectedContact(String(c))}
-            className={`p-3 rounded-lg cursor-pointer transition ${selectedContact === String(c)
-                ? "bg-blue-500 text-white"
-                : theme === "dark"
-                  ? "hover:bg-[#202c33]"
-                  : "hover:bg-gray-200"
-              }`}
-          >
-            Contact {c}
-          </div>
-        ))}
+      {/* Bottom Icon (Settings) */}
+      <div
+        onClick={() => setActivedTab("setting")}
+        className={`p-3 rounded-full cursor-pointer transition ${activeTab === "setting"
+          ? "bg-green-500 text-white"
+          : theme === "dark"
+            ? "text-gray-300 hover:bg-[#2a3942]"
+            : "text-gray-700 hover:bg-gray-300"
+          }`}
+      >
+        <Settings size={22} />
       </div>
     </div>
   );
 };
 
-export default Sidebar;
+export default SidebarIcons;
