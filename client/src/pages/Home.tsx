@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Layout from './Layout'
 import ChatLists from '../components/chat/ChatLists'
-import useLayoutStore from '../store/useLayoutStore'
+
 import { toast } from 'react-toastify'
 import { getAllUsersAPI } from '../services/user.service'
 
@@ -9,7 +9,7 @@ import { getAllUsersAPI } from '../services/user.service'
 
 const Home: React.FC = () => {
 
-  const setSelectedContact = useLayoutStore(state => state.setSelectedContact);
+
 
   const [allUsers, setAllUser] = useState([]);
 
@@ -33,7 +33,7 @@ const Home: React.FC = () => {
     fetchData();
   }, [])
   return (
-    <Layout><ChatLists contacts={allUsers} setSelectedContact={setSelectedContact} /></Layout>
+    <Layout><ChatLists contacts={allUsers} /></Layout>
   )
 }
 
