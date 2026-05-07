@@ -60,7 +60,7 @@ const initializeSocket = (server: http.Server<typeof http.IncomingMessage, typeo
     socket.on("send_message", async (message) => {
       try {
         const receiverId = onlineUser.get(message?._id);
-        if (receiverId) io.to(receiverId).emit("receiver_message", message);
+        if (receiverId) io.to(receiverId).emit("receive_message", message);
       } catch (error) {
         console.error("sending message problem : ", error)
         socket.emit("message_error", { error: "Failed to send message" })
