@@ -6,6 +6,9 @@ import baseUrl from "../services/baseApi.service";
 type Message = {
   _id: string;
   conversation: string;
+  messageStatus?: string;
+  receiver?: User
+  sender?: User
 };
 type User = {
   _id: string;
@@ -13,7 +16,7 @@ type User = {
 };
 type Conversation = {
   _id: string;
-  participants: User[] | null;
+  participants?: User[];
   unreadCount?: number;
   lastMessage?: Message;
 };
@@ -34,6 +37,7 @@ type ChatState = {
   }>;
   typingUser: Map<string, Set<string>>;
   initializeSocketListener: () => void;
+  markAsRead: () => void;
 };
 
 
@@ -219,10 +223,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const messgaesArr = data.data || data || []
       set({
         messages: messgaesArr,
-        currentConversation: { _id: conversationId, participants: null },
+        currentConversation: { _id: conversationId },
         loading: false,
       })
-      //mark as read
+      const { markAsRead } = get();
+      markAsRead();
       return messgaesArr;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -246,7 +251,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     if (msg.conversation === currentConversation?._id) {
       set((state) => ({
         messages: [...state.messages, msg]
-      }))
+      }));
+
+      if (msg.receiver._id === currentUser) {
+        const { markAsRead } = get();
+        markAsRead();
+      }
     }
 
 
@@ -271,6 +281,114 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       }
     })
-  }
+  },
 
+  //mark as a read
+
+  markAsRead: async () => {
+    const { messages, currentUser } = get();
+
+    if (!messages.length || !currentUser) return;
+
+    const unreadIds = messages.filter((msg) => msg.messageStatus === 'read' && msg.receiver?._id === currentUser).map((msg) => msg._id).filter(Boolean);
+
+    if (unreadIds.length === 0) return;
+
+    try {
+      const { data } = await baseUrl.put("/chat/message/read", { messageIds: unreadIds });
+      console.log(data)
+      set((state) => ({
+        messages: state.messages.map((msg) => unreadIds.includes(msg._id) ? { ...msg, messageStatus: "read" } : msg)
+      }));
+
+      const socket = getSocket();
+      if (socket) {
+        socket.emit("message_read", { messageIds: unreadIds, senderId: messages[0].sender?._id })
+      }
+    } catch (error) {
+      console.log("mark as read error : ", error)
+    }
+  },
+
+  //delete message
+
+  deleteMessage: async (messageId: string) => {
+    try {
+      await baseUrl.delete(`/chat/message/${messageId}`);
+      set((state) => ({
+        messages: state.messages.filter((msg) => msg._id !== messageId)
+      }))
+
+      return true;
+    } catch (error) {
+      console.log("error in delete message : ", error)
+    }
+  },
+
+  //addReactions
+
+  addReaction: async ({ messageId, emoji }: { messageId: string, emoji: string }) => {
+    const socket = getSocket();
+    const { currentUser } = get();
+    if (socket && currentUser) {
+      socket.emit("add_reaction", { messageId, emoji, reactionUserId: currentUser });
+    }
+  },
+
+
+  //typing start
+
+  typingStart: (receiverId: string) => {
+    const socket = getSocket();
+    const { currentConversation } = get();
+
+    if (receiverId && socket && currentConversation) {
+      socket.emit("typing_start", { conversationId: currentConversation._id, receiverId });
+    }
+  },
+
+  //typing stop
+  typingStop: (receiverId: string) => {
+    const socket = getSocket();
+    const { currentConversation } = get();
+
+    if (receiverId && socket && currentConversation) {
+      socket.emit("typing_stop", { conversationId: currentConversation._id, receiverId });
+    }
+  },
+
+  isUserTyping: (userId: string) => {
+    const { typingUser, currentConversation } = get();
+
+    if (!userId || !currentConversation) return false;
+
+    return (
+      typingUser
+        .get(currentConversation._id)
+        ?.has(userId)
+    );
+  },
+
+  isUserOnline: (userId: string) => {
+    if (!userId) return null;
+    const { onlineUser } = get();
+    return onlineUser.get(userId)?.isOnline || false
+  },
+
+  getUserLastSeen: (userId: string) => {
+    if (!userId) return null;
+    const { onlineUser } = get();
+    return onlineUser.get(userId)?.isOnline || false
+  },
+
+  cleanup: () => {
+    set({
+      conversations: { data: [] },
+      currentConversation: null,
+      messages: [],
+      onlineUser: new Map(),
+      typingUser: new Map()
+
+    })
+  }
 }))
