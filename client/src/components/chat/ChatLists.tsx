@@ -4,7 +4,7 @@ import useThemeStore from "../../store/useThemeStore";
 
 type Contact = {
   username: string;
-  profilePictures?: string; // 👈 your field
+  profilePictures?: string;
 };
 
 type Props = {

@@ -146,7 +146,7 @@ const initializeSocket = (server: http.Server<typeof http.IncomingMessage, typeo
 
     //reactions 
 
-    socket.on("add_reaction", async ({ messageId, emoji, userId, reactionUserId }) => {
+    socket.on("add_reaction", async ({ messageId, emoji, reactionUserId }) => {
       try {
         const message = await Message.findById(messageId);
         if (!message) return;

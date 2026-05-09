@@ -1,10 +1,19 @@
+import { useRef, useState } from "react";
 import useLayoutStore from "../../store/useLayoutStore";
 
 const ChatWindow = () => {
   const selectedContact = useLayoutStore(
     (state) => state.selectedContact
   );
-
+  const [message, setMessage] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showFileMenu, setShowFileMenu] = useState(false);
+  const [filePreview, setFilePreview] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const typingTimeOutRef = useRef();
+  const messageRef = useRef();
+  const emojiPickerRef = useRef();
+  const fileInputRef = useRef();
   return (
     <div className="p-4">
       <h2>Chat with {selectedContact}</h2>
