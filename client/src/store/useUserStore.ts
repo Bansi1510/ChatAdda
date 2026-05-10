@@ -1,12 +1,14 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-
+type User = {
+  _id: string
+}
 type UserState = {
-  user: object | null;
+  user: User | null;
   isAuthenticated: boolean;
 
-  setUser: (userData: object) => void;
+  setUser: (userData: User) => void;
   clearUser: () => void;
 };
 const useUserStore = create<UserState>()(
@@ -14,7 +16,7 @@ const useUserStore = create<UserState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      setUser: (userData) => set({ user: userData, isAuthenticated: true }),
+      setUser: (userData: User) => set({ user: userData, isAuthenticated: true }),
       clearUser: () => set({ user: null, isAuthenticated: false })
     }),
     {

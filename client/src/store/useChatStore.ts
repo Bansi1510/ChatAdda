@@ -3,17 +3,25 @@ import { getSocket } from "../services/chat.service";
 import axios from "axios";
 import baseUrl from "../services/baseApi.service";
 
-type Message = {
-  _id: string;
-  conversation: string;
-  messageStatus?: string;
-  receiver?: User
-  sender?: User
-};
 type User = {
   _id: string;
   username: string;
 };
+
+type MessageReaction = {
+  emoji: string;
+  reactionUserId: string;
+};
+
+type Message = {
+  _id: string;
+  conversation: string;
+  messageStatus?: string;
+  receiver: User;
+  sender?: User;
+  reactions?: MessageReaction[];
+};
+
 type Conversation = {
   _id: string;
   participants?: User[];
@@ -21,23 +29,81 @@ type Conversation = {
   lastMessage?: Message;
 };
 
+type OnlineUserStatus = {
+  isOnline: boolean;
+  lastSeen: string | Date | null;
+};
+
 type ChatState = {
   conversations: {
     data: Conversation[];
   };
-  currentConversation: Conversation | null
+
+  currentConversation: Conversation | null;
+
   messages: Message[];
-  currentUser: string | null
+
+  currentUser: string | null;
+
   loading: boolean;
+
   error: string | null;
+
   messageStatus: string;
-  onlineUser: Map<string, {
-    isOnline: boolean,
-    lastSeen: string | null | Date
-  }>;
+
+  onlineUser: Map<string, OnlineUserStatus>;
+
   typingUser: Map<string, Set<string>>;
+
+  // socket
   initializeSocketListener: () => void;
-  markAsRead: () => void;
+
+  // user
+  setCurrentUser: (user: string) => void;
+
+  // conversations
+  fetchConversations: () => Promise<{
+    data: Conversation[];
+  } | null>;
+
+  // messages
+  fetchMessages: (conversationId: string) => Promise<Message[]>;
+
+  receiveMessage: (msg: Message) => void;
+
+  sendMessage: (formData: FormData) => void;
+
+  // read
+  markAsRead: () => Promise<void>;
+
+  // delete
+  deleteMessage: (messageId: string) => Promise<boolean | undefined>;
+
+  // reactions
+  addReaction: ({
+    messageId,
+    emoji,
+  }: {
+    messageId: string;
+    emoji: string;
+  }) => Promise<void>;
+
+  // typing
+  typingStart: (receiverId: string) => void;
+
+  typingStop: (receiverId: string) => void;
+
+  isUserTyping: (userId: string) => boolean | undefined;
+
+  // online
+  isUserOnline: (userId: string) => boolean | null;
+
+  getUserLastSeen: (
+    userId: string
+  ) => string | Date | boolean | null;
+
+  // cleanup
+  cleanup: () => void;
 };
 
 
@@ -281,6 +347,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       }
     })
+  },
+  sendMessage: async (formData: FormData) => {
+    console.log(formData)
   },
 
   //mark as a read
