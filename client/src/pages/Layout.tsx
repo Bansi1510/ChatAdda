@@ -52,8 +52,8 @@ const Layout: React.FC<LayoutProps> = ({
           {/* ===== HEADER ===== */}
           <div
             className={`h-16 flex items-center justify-between px-4 ${theme === "dark"
-                ? "bg-[#202c33] text-white"
-                : "bg-white text-black border-b"
+              ? "bg-[#202c33] text-white"
+              : "bg-white text-black border-b"
               }`}
           >
             <div className="flex items-center gap-3">
@@ -91,7 +91,7 @@ const Layout: React.FC<LayoutProps> = ({
               }`}
           >
             {selectedContact ? (
-              children ? children : <ChatWindow />
+              children ? children : <ChatWindow selectedContact={selectedContact} setSelectedContact={setSelectedContact} isMobile={isMobile} />
             ) : (
               <div
                 className={`h-full flex items-center justify-center ${theme === "dark" ? "text-gray-400" : "text-gray-600"
@@ -106,8 +106,8 @@ const Layout: React.FC<LayoutProps> = ({
           {selectedContact && (
             <div
               className={`h-16 flex items-center px-4 gap-3 ${theme === "dark"
-                  ? "bg-[#202c33]"
-                  : "bg-white border-t"
+                ? "bg-[#202c33]"
+                : "bg-white border-t"
                 }`}
             >
               <span className="text-xl">😊</span>
@@ -116,8 +116,8 @@ const Layout: React.FC<LayoutProps> = ({
                 type="text"
                 placeholder="Type a message"
                 className={`flex-1 px-4 py-2 rounded-full outline-none ${theme === "dark"
-                    ? "bg-[#2a3942] text-white"
-                    : "bg-gray-100 text-black"
+                  ? "bg-[#2a3942] text-white"
+                  : "bg-gray-100 text-black"
                   }`}
               />
 
@@ -132,8 +132,8 @@ const Layout: React.FC<LayoutProps> = ({
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
           <div
             className={`p-6 rounded-lg ${theme === "dark"
-                ? "bg-gray-800 text-white"
-                : "bg-white text-black"
+              ? "bg-gray-800 text-white"
+              : "bg-white text-black"
               }`}
           >
             <h2 className="mb-4">Select Theme</h2>
