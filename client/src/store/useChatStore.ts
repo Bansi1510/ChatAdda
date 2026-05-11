@@ -5,7 +5,7 @@ import baseUrl from "../services/baseApi.service";
 
 type User = {
   _id: string;
-  username: string;
+  username?: string;
 };
 
 type MessageReaction = {
@@ -13,13 +13,26 @@ type MessageReaction = {
   reactionUserId: string;
 };
 
-type Message = {
+export interface Message {
   _id: string;
+
   conversation: string;
+
   messageStatus?: string;
+
   receiver: User;
+
   sender?: User;
+
   reactions?: MessageReaction[];
+
+  content?: string | null;
+
+  contentType?: string;
+
+  imageOrVideoUrl?: string | null;
+
+  createdAt?: string;
 };
 
 type Conversation = {
@@ -349,7 +362,76 @@ export const useChatStore = create<ChatState>((set, get) => ({
     })
   },
   sendMessage: async (formData: FormData) => {
-    console.log(formData)
+    const senderId = formData.get("senderId");
+    const receiverId = formData.get("receiverId");
+    const media = formData.get("media");
+    const content = formData.get("content");
+    const messageStatus = formData.get("messageStatus");
+
+
+
+    const { conversations } = get();
+
+    let conversationId = null
+
+    if (conversations.data.length > 0) {
+      const con = conversations.data.find((conv) =>
+        conv.participants?.some((p) => p._id === senderId) && conv.participants.some(p => p._id === receiverId)
+      )
+
+      if (con) {
+        conversationId = con._id;
+        set({ currentConversation: con })
+
+      }
+    }
+
+    //message preview
+
+    const id = `temp-${Date.now()}`;
+    const preMessage = {
+      _id: id,
+      sender: { _id: senderId as string },
+      receiver: { _id: receiverId as string },
+      conversation: conversationId as string,
+      imageOrVideoUrl: media && typeof media !== 'string' ? URL.createObjectURL(media) : null,
+      content: content as string,
+      contentType:
+        media instanceof File
+          ? media.type.startsWith("image")
+            ? "image"
+            : media.type.startsWith("video")
+              ? "video"
+              : "file"
+          : "text",
+      createdAt: new Date().toISOString(),
+      messageStatus: messageStatus as string
+    }
+
+    set((state) => ({
+      messages: [...state.messages, preMessage]
+    }))
+    try {
+      const { data } = await baseUrl.post("/chat/send-message", formData, { headers: { "Content-Type": "multipart-form-data" } });
+      const messageData = data.data || data
+
+      //replace preMessage to real message
+      set((state) => ({
+        messages: state.messages.map((msg) => msg._id === id ? messageData : msg)
+      }));
+
+      return messageData;
+    } catch (error) {
+      console.log("sending message error ", error);
+      set((state) => ({
+        messages: state.messages.map((msg) => msg._id === id ? { ...msg, messageStatus: "failed" } : msg),
+      }))
+      if (axios.isAxiosError(error)) {
+        set({
+          error: error.response?.data.message || error.message,
+        })
+      }
+    }
   },
 
   //mark as a read
