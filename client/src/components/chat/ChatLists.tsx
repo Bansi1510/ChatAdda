@@ -3,6 +3,7 @@ import useLayoutStore from "../../store/useLayoutStore";
 import useThemeStore from "../../store/useThemeStore";
 
 type Contact = {
+  _id: string;
   username: string;
   profilePictures?: string;
 };
@@ -18,7 +19,7 @@ const ChatLists: React.FC<Props> = ({ contacts }) => {
   const selectedContact = useLayoutStore(
     (state) => state.selectedContact
   );
-
+  console.log(selectedContact)
   const { theme } = useThemeStore();
   const [search, setSearch] = useState("");
 
@@ -49,12 +50,12 @@ const ChatLists: React.FC<Props> = ({ contacts }) => {
       <div className="flex-1 overflow-y-auto">
         {filteredContacts.length > 0 ? (
           filteredContacts.map((c, index) => {
-            const isSelected = selectedContact === c.username;
+            const isSelected = selectedContact === c._id;
 
             return (
               <div
                 key={index}
-                onClick={() => setSelectedContact(c.username)}
+                onClick={() => setSelectedContact(c._id)}
                 className={`flex items-center gap-3 p-3 cursor-pointer transition ${isSelected
                   ? "bg-[#2a3942] text-white"
                   : theme === "dark"
