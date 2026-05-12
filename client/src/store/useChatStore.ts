@@ -279,9 +279,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     try {
       const { data } = await baseUrl.get("/chat/conversations");
+      console.log("hello")
       set({ conversations: data, loading: false });
       get().initializeSocketListener();
-      return data
+      return data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         set({

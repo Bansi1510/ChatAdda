@@ -22,11 +22,12 @@ import {
 } from "lucide-react";
 
 type Props = {
-  selectedContact: string | null;
-  setSelectedContact: (contact: string | null) => void;
-
+  selectedContact: string;
+  setSelectedContact: (id: string | null) => void;
+  username: string
+  showChatList: boolean;
+  setShowChatList: React.Dispatch<React.SetStateAction<boolean>>;
 };
-
 const isValidate = (date: Date | number) => {
   return date instanceof Date && !isNaN(date.getTime());
 };
@@ -34,6 +35,8 @@ const isValidate = (date: Date | number) => {
 const ChatWindow = ({
   selectedContact,
   setSelectedContact,
+  setShowChatList,
+  username
 
 }: Props) => {
   const [message, setMessage] = useState("");
@@ -82,7 +85,7 @@ const ChatWindow = ({
 
   useEffect(() => {
     fetchConversations();
-  });
+  }, []);
 
   const scrollToBottom = () => {
     messageRef.current?.scrollIntoView({
@@ -232,6 +235,7 @@ const ChatWindow = ({
   }
 
   return (
+
     <div
       className={`h-screen flex flex-col
       ${theme === "dark"
@@ -253,6 +257,12 @@ const ChatWindow = ({
           >
             <ArrowLeft size={22} />
           </button>
+          <button
+            onClick={() => setShowChatList((prev) => !prev)}
+            className="p-2 bg-green-500 text-white rounded"
+          >
+            Toggle Chat List
+          </button>
 
           <div className="relative">
             <img
@@ -268,7 +278,7 @@ const ChatWindow = ({
 
           <div>
             <h2 className="font-semibold text-[15px]">
-              {selectedContact}
+              {username}
             </h2>
 
             <p className="text-xs text-gray-400">
