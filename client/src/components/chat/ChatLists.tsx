@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import useLayoutStore from "../../store/useLayoutStore";
 import useThemeStore from "../../store/useThemeStore";
+import { getAllUsersAPI } from "../../services/user.service";
+import { toast } from "react-toastify";
 
 type Contact = {
   _id: string;
@@ -8,17 +10,38 @@ type Contact = {
   profilePictures?: string;
 };
 
-type Props = {
-  contacts: Contact[];
-};
 
-const ChatLists: React.FC<Props> = ({ contacts }) => {
+
+const ChatLists: React.FC = () => {
+  const [contacts, setContacts] = useState<Contact[] | []>([]);
+
+  const getAllUsers = async () => {
+    try {
+      const res = await getAllUsersAPI();
+      console.log(res.data)
+      if (res.status === 'success') setContacts(res.data);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
+    }
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      getAllUsers();
+
+    }
+    fetchData();
+  }, [])
+  console.log("hello")
   const setSelectedContact = useLayoutStore(
     (state) => state.setSelectedContact
   );
   const selectedContact = useLayoutStore(
     (state) => state.selectedContact
   );
+  const setUsername = useLayoutStore((state) => state.setUsername);
   console.log(selectedContact)
   const { theme } = useThemeStore();
   const [search, setSearch] = useState("");
@@ -55,7 +78,10 @@ const ChatLists: React.FC<Props> = ({ contacts }) => {
             return (
               <div
                 key={index}
-                onClick={() => setSelectedContact(c._id)}
+                onClick={() => {
+                  setSelectedContact(c._id);
+                  setUsername(c.username)
+                }}
                 className={`flex items-center gap-3 p-3 cursor-pointer transition ${isSelected
                   ? "bg-[#2a3942] text-white"
                   : theme === "dark"

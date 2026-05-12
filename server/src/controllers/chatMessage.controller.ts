@@ -85,7 +85,7 @@ export const getAllConversation = async (req: Request, res: Response) => {
           select: "username profilePictures"
         }
       }).sort({ updatedAt: -1 });
-    return response(res, 201, "conversaction get successfully", conversations);
+    return response(res, 201, "conversaction get successfully ", conversations);
   } catch (error) {
     console.error(error);
     return response(res, 500, "Internal server error");
