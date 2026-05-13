@@ -32,7 +32,7 @@ const Layout: React.FC<LayoutProps> = ({
 
   // ✅ NEW STATE
   const [showChatList, setShowChatList] = useState(true);
-
+  const profilePictures = useLayoutStore((state) => state.profilePictures);
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -75,6 +75,7 @@ const Layout: React.FC<LayoutProps> = ({
                   selectedContact={selectedContact}
                   setSelectedContact={setSelectedContact}
                   username={username as string}
+                  profilePictures={profilePictures}
                   // ✅ PASS STATE
                   showChatList={showChatList}
                   setShowChatList={setShowChatList}

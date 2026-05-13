@@ -22,6 +22,8 @@ const initializeSocket = (server: http.Server<typeof http.IncomingMessage, typeo
 
   //new socket creation
   io.on("connection", (socket) => {
+
+    console.log(socket.id)
     console.log(`user connected :${socket.id}`);
     let userId: string | null = null;
 
@@ -59,37 +61,73 @@ const initializeSocket = (server: http.Server<typeof http.IncomingMessage, typeo
 
     socket.on("send_message", async (message) => {
       try {
-        const receiverId = onlineUser.get(message?._id);
-        if (receiverId) io.to(receiverId).emit("receive_message", message);
+        const receiverSocketId =
+          onlineUser.get(
+            message.receiver._id.toString()
+          );
+
+        console.log(
+          "receiver socket:",
+          receiverSocketId
+        );
+
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit(
+            "receive_message",
+            message
+          );
+
+          console.log(
+            "message emitted realtime"
+          );
+        }
       } catch (error) {
-        console.error("sending message problem : ", error)
-        socket.emit("message_error", { error: "Failed to send message" })
+        console.error(
+          "sending message problem : ",
+          error
+        );
+
+        socket.emit("message_error", {
+          error: "Failed to send message",
+        });
       }
-    })
+    });
 
     //update message as read  and notify sender
 
     socket.on("message_read", async ({ messageIds, senderId }) => {
       try {
-        await Message.updateMany({
-          _id: { $in: { messageIds } }
-        }, {
-          $set: {
-            messageStatus: "read"
+        await Message.updateMany(
+          {
+            _id: { $in: messageIds }
+          },
+          {
+            $set: {
+              messageStatus: "read"
+            }
           }
-        });
+        );
+
         const senderSocketId = onlineUser.get(senderId);
 
         if (senderSocketId) {
-          messageIds.forEach((messageId: unknown) => {
-            io.to(senderSocketId).emit("message_status_update", { messageId, messageStatus: "read" })
+          messageIds.forEach((messageId: string) => {
+            io.to(senderSocketId).emit(
+              "message_status_update",
+              {
+                messageId,
+                messageStatus: "read"
+              }
+            );
           });
         }
       } catch (error) {
-        console.log("message status read error : ", error);
+        console.log(
+          "message status read error : ",
+          error
+        );
       }
-
-    })
+    });
 
     //typing status update
 
@@ -168,7 +206,7 @@ const initializeSocket = (server: http.Server<typeof http.IncomingMessage, typeo
         }
         await message.save();
 
-        const populatedMessage = await Message.findOne(message?._id)
+        const populatedMessage = await Message.findOne({ _id: message._id })
           .populate("sender", "username profilePictures")
           .populate("receiver", "username profilePictures")
           .populate("reactions.user", "username")

@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import useThemeStore from "../../store/useThemeStore";
 import useUserStore from "../../store/useUserStore";
 import { useChatStore, type Message } from "../../store/useChatStore";
-import quickReactions from "../../utils/emojies"
 import {
   isToday,
   isYesterday,
@@ -19,14 +18,15 @@ import {
   Image as ImageIcon,
   File,
   X,
-  CheckCheck
 } from "lucide-react";
+import MessageList from "./MessageList";
 
 type Props = {
   selectedContact: string;
   setSelectedContact: (id: string | null) => void;
   username: string
   showChatList: boolean;
+  profilePictures: string
   setShowChatList: React.Dispatch<React.SetStateAction<boolean>>;
 };
 const isValidate = (date: Date | number) => {
@@ -37,8 +37,8 @@ const ChatWindow = ({
   selectedContact,
   setSelectedContact,
   setShowChatList,
-  username
-
+  username,
+  profilePictures
 }: Props) => {
   const [message, setMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -71,6 +71,7 @@ const ChatWindow = ({
   const isOnline = isUserOnline(selectedContact as string);
   const lastSeen = getUserLastSeen(selectedContact as string);
   const isTyping = isUserTyping(selectedContact as string);
+
 
   useEffect(() => {
     fetchConversations();
@@ -297,17 +298,33 @@ const ChatWindow = ({
 
           {/* PROFILE IMAGE */}
           <div className="relative shrink-0">
-            <img
-              src={user?.profilePictures || username.charAt(0).toUpperCase()}
-              alt="profile"
-              className="
-          w-11 h-11 rounded-full
-          object-cover
-          ring-2 ring-transparent
-          hover:ring-green-500/40
-          transition-all duration-300
-        "
-            />
+            {
+              profilePictures ? (
+                <img
+                  src={profilePictures}
+                  alt="profile"
+
+                  className="
+        w-11 h-11 rounded-full
+        object-cover
+        ring-2 ring-transparent
+        hover:ring-green-500/40
+        transition-all duration-300
+      "
+                />
+              ) : (
+                <div
+                  className="
+        w-11 h-11 rounded-full
+        bg-green-500 text-white
+        flex items-center justify-center
+        font-semibold
+      "
+                >
+                  {username.charAt(0).toUpperCase()}
+                </div>
+              )
+            }
 
             {isOnline && (
               <span
@@ -407,121 +424,14 @@ const ChatWindow = ({
       </div>
 
       {/* CHAT AREA */}
-      <div
-        className="flex-1 overflow-y-auto px-4 py-5 bg-cover bg-center"
-        style={{
-          backgroundColor:
-            theme === "dark"
-              ? "#0b141a"
-              : "#efeae2"
-        }}
-      >
-        {
-          Object.entries(groupedMessages).map(
-            ([date, msgs]) => (
-              <div key={date}>
-                {renderDateSeparator(new Date(date))}
-
-                <div className="space-y-2">
-                  {msgs.map((msg) => {
-                    const isMine =
-                      msg.sender?._id === user?._id;
-
-                    return (
-                      <div
-                        key={msg._id}
-                        className={`flex ${isMine
-                          ? "justify-end"
-                          : "justify-start"
-                          }`}
-                      >
-                        <div
-                          className={`group relative max-w-[75%] px-3 py-2 rounded-lg shadow-sm
-                        ${isMine
-                              ? theme === "dark"
-                                ? "bg-[#005c4b] text-white rounded-br-none"
-                                : "bg-[#d9fdd3] text-black rounded-br-none"
-                              : theme === "dark"
-                                ? "bg-[#202c33] text-white rounded-bl-none"
-                                : "bg-white text-black rounded-bl-none"
-                            }`}
-                        >
-                          {/* IMAGE */}
-                          {msg.imageOrVideoUrl && (
-                            <img
-                              src={msg.imageOrVideoUrl}
-                              alt=""
-                              className="rounded-lg mb-2 max-h-72 object-cover"
-                            />
-                          )}
-
-                          {/* TEXT */}
-                          {msg.content && (
-                            <p className="text-sm break-words">
-                              {msg.content}
-                            </p>
-                          )}
-
-                          {/* REACTIONS */}
-                          <div className="flex gap-1 mt-2">
-                            {quickReactions.map(
-                              (emoji) => (
-                                <button
-                                  key={emoji}
-                                  onClick={() =>
-                                    handleReaction(
-                                      msg._id,
-                                      emoji
-                                    )
-                                  }
-                                  className="opacity-0 group-hover:opacity-100 transition text-xs hover:scale-125"
-                                >
-                                  {emoji}
-                                </button>
-                              )
-                            )}
-                          </div>
-
-                          {/* TIME */}
-                          <div className="flex justify-end items-center gap-1 mt-1">
-                            <span className="text-[10px] opacity-70">
-                              {msg.createdAt
-                                ? format(
-                                  new Date(msg.createdAt),
-                                  "hh:mm a"
-                                )
-                                : ""}
-                            </span>
-
-                            {isMine && (
-                              <>
-                                {msg.messageStatus ===
-                                  "seen" ? (
-                                  <CheckCheck
-                                    size={14}
-                                    className="text-blue-400"
-                                  />
-                                ) : (
-                                  <CheckCheck
-                                    size={14}
-                                    className="opacity-60"
-                                  />
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )
-          )
-        }
-
-        < div ref={messageRef} />
-      </div >
+      <MessageList
+        groupedMessages={groupedMessages}
+        user={user}
+        theme={theme}
+        renderDateSeparator={renderDateSeparator}
+        handleReaction={handleReaction}
+        messageRef={messageRef}
+      />
 
       {/* FILE PREVIEW */}
       {
