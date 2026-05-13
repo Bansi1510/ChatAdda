@@ -26,13 +26,12 @@ const Layout: React.FC<LayoutProps> = ({
   const setSelectedContact = useLayoutStore(
     (state) => state.setSelectedContact
   );
-
   const { theme } = useThemeStore();
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // ✅ NEW STATE
-  const [showChatList, setShowChatList] = useState(false);
+  const [showChatList, setShowChatList] = useState(true);
 
   useEffect(() => {
     const handleResize = () => {
@@ -75,7 +74,7 @@ const Layout: React.FC<LayoutProps> = ({
                 <ChatWindow
                   selectedContact={selectedContact}
                   setSelectedContact={setSelectedContact}
-                  username={username}
+                  username={username as string}
                   // ✅ PASS STATE
                   showChatList={showChatList}
                   setShowChatList={setShowChatList}

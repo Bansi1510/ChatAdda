@@ -34,7 +34,6 @@ const ChatLists: React.FC = () => {
     }
     fetchData();
   }, [])
-  console.log("hello")
   const setSelectedContact = useLayoutStore(
     (state) => state.setSelectedContact
   );
@@ -42,6 +41,7 @@ const ChatLists: React.FC = () => {
     (state) => state.selectedContact
   );
   const setUsername = useLayoutStore((state) => state.setUsername);
+  const setProfilePictures = useLayoutStore((state) => state.setProfilePictures);
   console.log(selectedContact)
   const { theme } = useThemeStore();
   const [search, setSearch] = useState("");
@@ -81,6 +81,7 @@ const ChatLists: React.FC = () => {
                 onClick={() => {
                   setSelectedContact(c._id);
                   setUsername(c.username)
+                  setProfilePictures(c.profilePictures as string);
                 }}
                 className={`flex items-center gap-3 p-3 cursor-pointer transition ${isSelected
                   ? "bg-[#2a3942] text-white"

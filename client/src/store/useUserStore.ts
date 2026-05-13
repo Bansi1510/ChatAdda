@@ -2,7 +2,8 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 type User = {
-  _id: string
+  _id: string,
+
 }
 type UserState = {
   user: User | null;

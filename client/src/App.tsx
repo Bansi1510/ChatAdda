@@ -11,11 +11,12 @@ import Status from "./components/status/Status";
 import Settings from "./components/setting/Settings";
 import useUserStore from "./store/useUserStore";
 import { disconnetSocket, initializeSocket } from "./services/chat.service";
+import { useChatStore } from "./store/useChatStore";
 
 function App() {
   const { theme } = useThemeStore();
   const user = useUserStore.getState().user as { _id: string } | null;
-
+  const { setCurrentUser, initializeSocketListener, cleanup } = useChatStore();
   const isDark = theme === "dark";
   const appRouter = useMemo(
     () =>
@@ -60,13 +61,17 @@ function App() {
     if (user?._id) {
       const socket = initializeSocket();
 
-
+      if (socket) {
+        setCurrentUser(user._id);
+        initializeSocketListener();
+      }
     }
 
     return () => {
+      cleanup();
       disconnetSocket();
     }
-  }, [user]);
+  }, [user, cleanup, initializeSocketListener, setCurrentUser]);
   return (
 
     <div className={isDark ? "dark" : ""}>
