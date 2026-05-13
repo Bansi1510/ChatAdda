@@ -17,7 +17,7 @@ export const chatMessageSend = async (req: Request, res: Response) => {
       conversation = new Conversation({ participants });
       await conversation.save();
     }
-
+    console.log(receiverId, senderId);
     let imageOrVideoUrl = null;
     let contentType = null;
 

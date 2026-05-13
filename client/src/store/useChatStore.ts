@@ -117,6 +117,8 @@ type ChatState = {
 
   // cleanup
   cleanup: () => void;
+
+  setMessages: (messages: Message[]) => void;
 };
 
 
@@ -363,6 +365,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     })
   },
   sendMessage: async (formData: FormData) => {
+
     const senderId = formData.get("senderId");
     const receiverId = formData.get("receiverId");
     const media = formData.get("media");
@@ -413,7 +416,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messages: [...state.messages, preMessage]
     }))
     try {
-      const { data } = await baseUrl.post("/chat/send-message", formData, { headers: { "Content-Type": "multipart-form-data" } });
+      const { data } = await baseUrl.post("/chat/send-message", formData, { headers: { "Content-Type": "multipart/form-data" } });
       const messageData = data.data || data
 
       //replace preMessage to real message
@@ -542,5 +545,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       typingUser: new Map()
 
     })
-  }
+  },
+  setMessages: (messages: Message[]) => set({ messages }),
 }))
