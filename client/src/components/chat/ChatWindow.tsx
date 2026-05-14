@@ -10,7 +10,7 @@ import {
 import {
   ArrowLeft,
   Send,
-  Smile,
+
   Paperclip,
   Phone,
   Video,
@@ -18,8 +18,11 @@ import {
   Image as ImageIcon,
   File,
   X,
+  Smile,
 } from "lucide-react";
 import MessageList from "./MessageList";
+import EmojiPicker, { Theme } from "emoji-picker-react";
+
 
 type Props = {
   selectedContact: string;
@@ -49,10 +52,13 @@ const ChatWindow = ({
   const messageRef = useRef<HTMLDivElement | null>(null);
   const emojiPickerRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // Track which conversation we've already fetched — prevents full refresh on every socket message
+  const lastFetchedConvId = useRef<string | null>(null);
 
   const { theme } = useThemeStore();
   const { user } = useUserStore();
-  console.log("window", selectedContact, username)
+  const [openPickerId, setOpenPickerId] =
+    useState<string | null>(null);
   const {
     isUserOnline,
     getUserLastSeen,
@@ -80,18 +86,22 @@ const ChatWindow = ({
   useEffect(() => {
     if (!selectedContact || conversations.data.length === 0) return;
 
-    // clear previous chat immediately
-    setMessages([]);
-
     const conversation = conversations.data.find((con) =>
       con.participants?.some((p) => p._id === selectedContact)
     );
 
-    if (conversation?._id) {
-      fetchMessages(conversation._id);
-    }
+    if (!conversation?._id) return;
 
-  }, [selectedContact, conversations.data, fetchMessages, setMessages]);
+    // Only fetch if we are switching to a different conversation.
+    // conversations.data changes on every incoming socket message (preview update)
+    // but that must NOT trigger a full re-fetch/refresh.
+    if (conversation._id === lastFetchedConvId.current) return;
+
+    lastFetchedConvId.current = conversation._id;
+    setMessages([]);
+    fetchMessages(conversation._id);
+
+  }, [selectedContact, conversations.data]);
 
 
 
@@ -473,14 +483,38 @@ const ChatWindow = ({
           }`}
       >
         {/* EMOJI */}
-        <button
-          onClick={() =>
-            setShowEmojiPicker(!showEmojiPicker)
-          }
-          className="text-gray-500 hover:text-green-500"
-        >
-          <Smile size={24} />
-        </button>
+        {/* EMOJI */}
+        <div className="relative">
+          <button
+            onClick={() =>
+              setShowEmojiPicker(!showEmojiPicker)
+            }
+            className="text-gray-500 hover:text-green-500"
+          >
+            <Smile size={22} />
+          </button>
+
+          {showEmojiPicker && (
+            <div className="absolute bottom-12 left-0 z-50">
+              <EmojiPicker
+                onEmojiClick={(emojiData) => {
+                  setMessage(
+                    (prev) => prev + emojiData.emoji
+                  );
+
+                  setShowEmojiPicker(false);
+                }}
+                theme={
+                  theme === "dark"
+                    ? Theme.DARK
+                    : Theme.LIGHT
+                }
+                width={280}
+                height={350}
+              />
+            </div>
+          )}
+        </div>
 
         {/* FILE */}
         <div className="relative">

@@ -77,3 +77,14 @@ export const getAllUsersAPI = async () => {
     }
   }
 }
+
+
+export const logout = async () => {
+  try {
+    await baseUrl.get("/user/log-out");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw error.response?.data || "API Error";
+    }
+  }
+}

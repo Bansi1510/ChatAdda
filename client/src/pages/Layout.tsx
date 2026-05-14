@@ -4,6 +4,7 @@ import useThemeStore from "../store/useThemeStore";
 import ChatWindow from "../components/chat/ChatWindow";
 import Sidebar from "./Sidebar";
 import ChatLists from "../components/chat/ChatLists";
+import Settings from "../components/setting/Settings";
 
 type LayoutProps = {
   children?: React.ReactNode;
@@ -26,6 +27,7 @@ const Layout: React.FC<LayoutProps> = ({
   const setSelectedContact = useLayoutStore(
     (state) => state.setSelectedContact
   );
+  const activeTab = useLayoutStore((state) => state.activeTab);
   const { theme } = useThemeStore();
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -52,13 +54,13 @@ const Layout: React.FC<LayoutProps> = ({
       {(!isMobile || !selectedContact) && <Sidebar />}
 
       {/* ================= CHAT AREA ================= */}
-      {(!isMobile || selectedContact) && (
+      {(!isMobile || selectedContact || activeTab === "setting") && (
         <div className="flex-1 flex">
 
           {/* ✅ CHAT LIST */}
           {showChatList && (
             <div className="w-[320px] border-r border-gray-700">
-              <ChatLists />
+              {activeTab === "setting" ? <Settings /> : <ChatLists />}
             </div>
           )}
 

@@ -265,7 +265,8 @@ const initializeSocket = (server: http.Server<typeof http.IncomingMessage, typeo
     // attach the online user map to the socket server for external  user
 
   });
-  const socketUserMap: Map<string, string> = onlineUser;
+  // Attach to io so HTTP controllers can access it via req.socketUserMap
+  io.socketUserMap = onlineUser;
 
   return io;
 

@@ -153,10 +153,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     socket.off("send_message");
     socket.off("receive_message");
-    socket.off("typing_start");
+    socket.off("user_typing");       // was "typing_start" — wrong event name
     socket.off("user_status");
     socket.off("message_error");
     socket.off("message_delete");
+    socket.off("message_status_update"); // was missing
+    socket.off("reaction_update");       // was missing
 
 
     //receive message
@@ -268,7 +270,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     if (conversations.data.length > 0) {
       conversations.data.forEach((con) => {
-        const otherUser = con?.participants?.find((p) => p._id !== get().currentConversation?._id)
+        const otherUser = con?.participants?.find((p) => p._id !== get().currentUser)
 
         if (otherUser?._id) {
           socket.emit("get_user_status", otherUser._id, ({ userId, isOnline, lastSeen }: { userId: string; isOnline: boolean; lastSeen: string | null | Date }) => {
