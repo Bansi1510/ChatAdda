@@ -10,13 +10,11 @@ import User from "./pages/User";
 import Status from "./components/status/Status";
 import Settings from "./components/setting/Settings";
 import useUserStore from "./store/useUserStore";
-import { disconnetSocket, initializeSocket } from "./services/chat.service";
+import { disconnectSocket, initializeSocket } from "./services/chat.service";
 import { useChatStore } from "./store/useChatStore";
 
 function App() {
   const { theme } = useThemeStore();
-  const user = useUserStore.getState().user as { _id: string } | null;
-  const { setCurrentUser, initializeSocketListener, cleanup } = useChatStore();
   const isDark = theme === "dark";
   const appRouter = useMemo(
     () =>
@@ -57,21 +55,33 @@ function App() {
       ]),
     []
   );
-  useEffect(() => {
-    if (user?._id) {
-      const socket = initializeSocket();
 
-      if (socket) {
-        setCurrentUser(user._id);
-        initializeSocketListener();
-      }
+  const user = useUserStore(
+    (state) => state.user
+  );
+  const initializeSocketListener =
+    useChatStore(
+      (state) =>
+        state.initializeSocketListener
+    );
+
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const socket = initializeSocket(user._id);
+
+    if (socket) {
+      initializeSocketListener();
     }
 
     return () => {
-      cleanup();
-      disconnetSocket();
-    }
-  }, [user, cleanup, initializeSocketListener, setCurrentUser]);
+      disconnectSocket();
+    };
+  }, [user]);
+
+
+
   return (
 
     <div className={isDark ? "dark" : ""}>

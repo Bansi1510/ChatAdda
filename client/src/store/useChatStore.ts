@@ -141,6 +141,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const socket = getSocket();
     if (!socket) return;
 
+
+    if (!socket.connected) {
+      socket.on("connect", () => {
+        get().initializeSocketListener();
+      });
+
+      return;
+    }
     //remove exiting listerners to prevent duplicate handlers
 
     socket.off("send_message");
@@ -150,11 +158,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     socket.off("message_error");
     socket.off("message_delete");
 
+
     //receive message
 
+
     socket.on("receive_message", (message) => {
-      console.log(message)
-    })
+      get().receiveMessage(message);
+    });
+
 
 
     //send message
@@ -176,6 +187,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         messages: state.messages.map((msg) =>
           msg._id === messageId ? { ...msg, messageStatus } : msg)
       }))
+
     })
     //update reaction on message
 
@@ -283,7 +295,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const { data } = await baseUrl.get("/chat/conversations");
       console.log("hello")
       set({ conversations: data, loading: false });
-      get().initializeSocketListener();
       return data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -330,7 +341,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const messageExits = messages.some((message) => message._id === msg._id);
     if (messageExits) return;
 
-    if (msg.conversation === currentConversation?._id) {
+    if (msg.conversation === currentConversation?._id?.toString()) {
       set((state) => ({
         messages: [...state.messages, msg]
       }));
@@ -445,7 +456,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     if (!messages.length || !currentUser) return;
 
-    const unreadIds = messages.filter((msg) => msg.messageStatus === 'read' && msg.receiver?._id === currentUser).map((msg) => msg._id).filter(Boolean);
+    const unreadIds = messages.filter((msg) => msg.messageStatus !== 'read' && msg.receiver?._id === currentUser).map((msg) => msg._id).filter(Boolean);
 
     if (unreadIds.length === 0) return;
 

@@ -17,7 +17,6 @@ export const chatMessageSend = async (req: Request, res: Response) => {
       conversation = new Conversation({ participants });
       await conversation.save();
     }
-    console.log(receiverId, senderId);
     let imageOrVideoUrl = null;
     let contentType = null;
 
@@ -65,8 +64,8 @@ export const chatMessageSend = async (req: Request, res: Response) => {
         await message.save();
       }
     }
-
-    return response(res, 201, "message send", populateMessage);
+    console.log("data come from ", populateMessage)
+    return response(res, 201, "message send ", populateMessage);
   } catch (error) {
     console.error(error);
     return response(res, 500, "Internal server error");

@@ -6,7 +6,7 @@ type LayoutState = {
   activeTab: string;
   selectedContact: string | null;
   username: string | null,
-  profilePictures: string,
+  profilePictures: string | null,
   setUsername: (name: string) => void
   setSelectedContact: (contact: string | null) => void;
   setActivedTab: (tab: string) => void;
@@ -19,7 +19,7 @@ const useLayoutStore = create<LayoutState>()(
       activeTab: 'chats',
       selectedContact: null,
       username: null,
-      profilePictures: "favicon.svg",
+      profilePictures: null,
       setUsername: (name: string) => set({ username: name }),
       setSelectedContact: (contact: string | null) => set({ selectedContact: contact }),
       setActivedTab: (tab: string) => set({ activeTab: tab }),
