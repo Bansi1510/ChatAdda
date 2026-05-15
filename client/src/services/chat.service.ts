@@ -3,14 +3,14 @@ import { io, Socket } from "socket.io-client";
 let socket: Socket | null = null;
 
 export const initializeSocket = (userId: string) => {
-  if (socket?.connected) return socket;
+  // Return existing socket regardless of connection state — prevents double-socket race condition
+  if (socket) return socket;
 
   const BACKEND_URL =
     import.meta.env.VITE_API_URL as string;
 
   socket = io(BACKEND_URL, {
     withCredentials: true,
-    transports: ["websocket"],
   });
 
   socket.on("connect", () => {
