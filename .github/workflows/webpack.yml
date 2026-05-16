@@ -27,7 +27,7 @@ jobs:
 
       - name: Build client
         working-directory: ./client
-        run: pnpm run build
+        run: pnpm build
 
   server-build:
     runs-on: ubuntu-latest
@@ -49,4 +49,4 @@ jobs:
 
       - name: Check server
         working-directory: ./server
-        run: pnpm run build --if-present
+        run: pnpm build
