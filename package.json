@@ -2,9 +2,12 @@
   "name": "mern-ts-root",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter client dev\""
+    "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
+    "build": "webpack"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "webpack": "^5.106.2",
+    "webpack-cli": "^7.0.2"
   }
 }

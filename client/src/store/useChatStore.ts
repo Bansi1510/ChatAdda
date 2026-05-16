@@ -496,8 +496,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   //addReactions
 
   addReaction: async ({ messageId, emoji }: { messageId: string, emoji: string }) => {
+    console.log(messageId, emoji);
     const socket = getSocket();
     const { currentUser } = get();
+    console.log(currentUser)
     if (socket && currentUser) {
       socket.emit("add_reaction", { messageId, emoji, reactionUserId: currentUser });
     }
