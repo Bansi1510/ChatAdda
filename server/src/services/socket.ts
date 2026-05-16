@@ -185,6 +185,7 @@ const initializeSocket = (server: http.Server<typeof http.IncomingMessage, typeo
     //reactions 
 
     socket.on("add_reaction", async ({ messageId, emoji, reactionUserId }) => {
+      console.log("cclg", messageId, emoji, reactionUserId)
       try {
         const message = await Message.findById(messageId);
         if (!message) return;

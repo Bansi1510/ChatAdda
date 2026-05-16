@@ -13,7 +13,10 @@ import {
 
 const Settings: React.FC = () => {
   const { theme } = useThemeStore();
-  const { user, clearUser } = useUserStore();
+  const { clearUser } = useUserStore();
+
+  const { username, profilePictures } = useLayoutStore();
+  const user = { username, profilePictures }
   const setActivedTab = useLayoutStore(
     (state) => state.setActivedTab
   );
@@ -61,7 +64,7 @@ const Settings: React.FC = () => {
           {user?.profilePictures ? (
             <img
               src={user.profilePictures}
-              alt={user.username}
+              alt={user.username as string}
               className="w-14 h-14 rounded-full object-cover"
             />
           ) : (

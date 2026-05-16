@@ -57,8 +57,7 @@ const ChatWindow = ({
 
   const { theme } = useThemeStore();
   const { user } = useUserStore();
-  const [openPickerId, setOpenPickerId] =
-    useState<string | null>(null);
+
   const {
     isUserOnline,
     getUserLastSeen,

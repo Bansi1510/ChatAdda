@@ -13,6 +13,7 @@ import avatars from "../utils/avatars";
 import { sendOtpAPI, updateUserProfile, verifyOtpAPI } from "../services/user.service";
 import Loader from "../utils/Loader";
 import Spinner from "../utils/spinner";
+import { useChatStore } from "../store/useChatStore";
 
 
 
@@ -63,7 +64,7 @@ const Login: React.FC = () => {
     useLoginStore();
   const { setUser } = useUserStore();
   const { theme, setTheme } = useThemeStore();
-
+  const { setCurrentUser } = useChatStore();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
@@ -229,11 +230,13 @@ const Login: React.FC = () => {
         const user = res.data.user;
         if (user.username && user.profilePictures) {
           toast.success(`wellcome back in whatsapp`);
-
+          setCurrentUser(user._id);
           setUser(user);
           navigate("/")
         }
         toast.success(res.message);
+        setCurrentUser(user._id);
+
         setStep(3);
       } else {
         toast.error(res.message);
@@ -269,8 +272,8 @@ const Login: React.FC = () => {
 
       if (res.status == "success") {
         toast.success(res.message);
+        setStep(1);
         navigate("/");
-
       }
 
     } catch (error) {
@@ -278,7 +281,7 @@ const Login: React.FC = () => {
         toast.error(error.message);
       }
     } finally {
-      setIsSavingProfile(false)
+      setIsSavingProfile(false);
     }
   }
   /* ---------------- UI ---------------- */
