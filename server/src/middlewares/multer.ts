@@ -10,6 +10,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req: any, file: any, cb: any) => {
+  console.log(file)
   if (
     file.mimetype.startsWith("image") ||
     file.mimetype.startsWith("video")

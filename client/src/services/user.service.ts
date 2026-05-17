@@ -35,9 +35,8 @@ export const verifyOtpAPI = async ({ email, phoneNumber, phoneSuffix, otp }: ver
   }
 }
 
-
-
 export const updateUserProfile = async (updateData: FormData) => {
+  console.log([...updateData.entries()]);
   try {
     const res = await baseUrl.put("/user/update-profile", updateData);
     return res.data;
@@ -47,9 +46,6 @@ export const updateUserProfile = async (updateData: FormData) => {
     }
   }
 }
-
-
-
 
 export const checkUserAutheticatedAPI = async () => {
   try {

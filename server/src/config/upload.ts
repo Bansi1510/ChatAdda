@@ -4,6 +4,7 @@ import fs from "fs/promises";
 export const uploadToCloudinary = async (
   filePath: string
 ): Promise<string | null> => {
+  console.log(filePath)
   try {
     const result = await cloudinary.uploader.upload(filePath, {
       folder: "chat-app",

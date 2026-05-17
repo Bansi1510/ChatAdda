@@ -106,6 +106,7 @@ export const updateProfile = async (req: Request, res: Response) => {
     const user = await User.findById(userId);
     const file = req.file;
     if (!user) return response(res, 401, 'you are not autheticated')
+    console.log("file contnet ", req.file, file)
     if (file) {
       const fileUrl = await uploadToCloudinary(file.path);
       if (fileUrl) user.profilePictures = fileUrl;
@@ -117,7 +118,7 @@ export const updateProfile = async (req: Request, res: Response) => {
     if (about) user.about = about;
 
     await user.save();
-
+    console.log(user);
     return response(res, 200, 'user profile updated', user);
 
   } catch (error) {

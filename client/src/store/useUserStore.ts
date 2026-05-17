@@ -1,9 +1,22 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-type User = {
-  _id: string,
-
+export interface User {
+  phoneNumber?: string;
+  phoneSuffix?: string;
+  username?: string;
+  email?: string;
+  emailOtp?: string | null;
+  otpExprire?: Date | null;
+  profilePictures?: string;
+  about?: string;
+  lastSeen?: Date;
+  isOnline?: boolean;
+  isVerified?: boolean;
+  agreed?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+  _id: string;
 }
 type UserState = {
   user: User | null;
