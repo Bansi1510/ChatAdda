@@ -5,13 +5,14 @@ import ChatWindow from "../components/chat/ChatWindow";
 import Sidebar from "./Sidebar";
 import ChatLists from "../components/chat/ChatLists";
 import Settings from "../components/setting/Settings";
+import User from "./User";
 
 type LayoutProps = {
   children?: React.ReactNode;
-  isThemeDialogOpen: boolean;
-  toggleThemeDialog: () => void;
-  isStatusPreviewOpen: boolean;
-  statusPreviewContent: React.ReactNode;
+  isThemeDialogOpen?: boolean;
+  toggleThemeDialog?: () => void;
+  isStatusPreviewOpen?: boolean;
+  statusPreviewContent?: React.ReactNode;
 };
 
 const Layout: React.FC<LayoutProps> = ({
@@ -33,7 +34,7 @@ const Layout: React.FC<LayoutProps> = ({
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // ✅ NEW STATE
-  const [showChatList, setShowChatList] = useState(true);
+  const [showChatList] = useState(true);
   const profilePictures = useLayoutStore((state) => state.profilePictures);
   useEffect(() => {
     const handleResize = () => {
@@ -44,14 +45,15 @@ const Layout: React.FC<LayoutProps> = ({
 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
+  console.log(activeTab);
   return (
     <div
-      className={`h-screen flex ${theme === "dark" ? "bg-[#111b21]" : "bg-[#e5ddd5]"
+      className={`h-screen flex flex-1 min-h-0 ${theme === "dark" ? "bg-[#111b21]" : "bg-[#e5ddd5]"
         }`}
     >
       {/* ================= SIDEBAR ================= */}
       {(!isMobile || !selectedContact) && <Sidebar />}
+
 
       {/* ================= CHAT AREA ================= */}
       {(!isMobile || selectedContact || activeTab === "setting") && (
@@ -60,7 +62,13 @@ const Layout: React.FC<LayoutProps> = ({
           {/* ✅ CHAT LIST */}
           {showChatList && (
             <div className="w-[320px] border-r border-gray-700">
-              {activeTab === "setting" ? <Settings /> : <ChatLists />}
+              <div className="w-[320px] border-r border-gray-700">
+                {activeTab === "setting" && <Settings />}
+
+                {activeTab === "chat" && <ChatLists />}
+
+                {activeTab === "profile" && <User />}
+              </div>
             </div>
           )}
 
@@ -77,10 +85,9 @@ const Layout: React.FC<LayoutProps> = ({
                   selectedContact={selectedContact}
                   setSelectedContact={setSelectedContact}
                   username={username as string}
-                  profilePictures={profilePictures}
+                  profilePictures={profilePictures as string}
                   // ✅ PASS STATE
                   showChatList={showChatList}
-                  setShowChatList={setShowChatList}
                 />
               ) : (
                 <div
