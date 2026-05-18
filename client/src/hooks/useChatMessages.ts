@@ -18,6 +18,12 @@ const useChatMessages = (
     fetchConversations();
   }, [fetchConversations]);
 
+  // RESET when changing contact
+  useEffect(() => {
+    lastFetchedConvId.current = null;
+    setMessages([]);
+  }, [selectedContact, setMessages]);
+
   useEffect(() => {
     if (
       !selectedContact ||
@@ -28,7 +34,8 @@ const useChatMessages = (
     const conversation =
       conversations.data.find((con) =>
         con.participants?.some(
-          (p) => p._id === selectedContact
+          (p) =>
+            p._id === selectedContact
         )
       );
 
@@ -43,10 +50,12 @@ const useChatMessages = (
     lastFetchedConvId.current =
       conversation._id;
 
-    setMessages([]);
-
     fetchMessages(conversation._id);
-  }, [selectedContact, conversations.data, fetchMessages, setMessages]);
+  }, [
+    selectedContact,
+    conversations.data,
+    fetchMessages,
+  ]);
 
   return {};
 };
