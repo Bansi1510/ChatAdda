@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar";
 import ChatLists from "../components/chat/ChatLists";
 import Settings from "../components/setting/Settings";
 import User from "./User";
+import Status from "../components/status/Status";
 
 type LayoutProps = {
   children?: React.ReactNode;
@@ -54,7 +55,7 @@ const Layout: React.FC<LayoutProps> = ({
       {/* ================= SIDEBAR ================= */}
       {(!isMobile || !selectedContact) && <Sidebar />}
 
-
+      {activeTab === 'status' && <Status />}
       {/* ================= CHAT AREA ================= */}
       {(!isMobile || selectedContact || activeTab === "setting") && (
         <div className="flex-1 flex">

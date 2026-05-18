@@ -1,9 +1,15 @@
 // MessageList.tsx
 
-import React from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
-import { CheckCheck } from "lucide-react";
+import {
+
+  CheckCheck,
+  SmilePlus,
+} from "lucide-react";
+
 import quickReactions from "../../utils/emojies";
+
 import type { Message } from "../../store/useChatStore";
 
 type User = {
@@ -11,9 +17,15 @@ type User = {
 };
 
 type Props = {
-  groupedMessages: Record<string, Message[]>;
+  groupedMessages: Record<
+    string,
+    Message[]
+  >;
+
   user: User | null;
+
   theme: string;
+
   renderDateSeparator: (
     date: Date
   ) => React.ReactNode;
@@ -34,7 +46,9 @@ const MessageList = ({
   handleReaction,
   messageRef,
 }: Props) => {
-  console.log(groupedMessages)
+  const [hoveredMessage, setHoveredMessage] =
+    useState<string | null>(null);
+
   return (
     <div
       className="flex-1 overflow-y-auto px-4 py-5 bg-cover bg-center"
@@ -47,14 +61,21 @@ const MessageList = ({
     >
       {Object.entries(groupedMessages).map(
         ([date, msgs]) => (
+          <div
+            key={date}
+            className="mb-6"
+          >
+            {renderDateSeparator(
+              new Date(date)
+            )}
 
-          <div key={date}>
-            {renderDateSeparator(new Date(date))}
-
-            <div className="space-y-4">
+            <div className="space-y-3">
               {msgs.map((msg) => {
                 const isMine =
                   msg.sender?._id === user?._id;
+
+                const isReactionOpen =
+                  hoveredMessage === msg._id;
 
                 return (
                   <div
@@ -63,19 +84,79 @@ const MessageList = ({
                       ? "justify-end"
                       : "justify-start"
                       }`}
+                    onMouseEnter={() =>
+                      setHoveredMessage(msg._id)
+                    }
+                    onMouseLeave={() =>
+                      setHoveredMessage(null)
+                    }
                   >
-                    {/* MESSAGE WRAPPER */}
                     <div className="relative max-w-[75%]">
-                      {/* MESSAGE BUBBLE */}
+                      {/* REACTION TRIGGER */}
+                      {isReactionOpen && (
+                        <div
+                          className={`absolute top-1 z-30 ${isMine
+                            ? "-left-10"
+                            : "-right-10"
+                            }`}
+                        >
+                          <div className="relative group/reaction">
+                            {/* EMOJI BUTTON */}
+                            <button
+                              className={`w-8 h-8 rounded-full shadow-md flex items-center justify-center transition
+                ${theme === "dark"
+                                  ? "bg-[#202c33] hover:bg-[#2a3942]"
+                                  : "bg-white hover:bg-gray-100"
+                                }`}
+                            >
+                              <SmilePlus />
+                            </button>
+
+                            {/* QUICK REACTIONS */}
+                            <div
+                              className={`absolute top-0 ${isMine
+                                ? "right-10"
+                                : "left-10"
+                                }
+                hidden group-hover/reaction:flex
+                items-center gap-1
+                px-2 py-1 rounded-full shadow-2xl border
+                ${theme === "dark"
+                                  ? "bg-[#202c33] border-[#2f3b43]"
+                                  : "bg-white border-gray-200"
+                                }`}
+                            >
+                              {quickReactions.map(
+                                (emoji) => (
+                                  <button
+                                    key={emoji}
+                                    onClick={() =>
+                                      handleReaction(
+                                        msg._id,
+                                        emoji
+                                      )
+                                    }
+                                    className="hover:scale-125 transition text-lg"
+                                  >
+                                    {emoji}
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* MESSAGE */}
                       <div
-                        className={`group relative px-3 py-2 rounded-lg shadow-sm
-                        ${isMine
+                        className={`group relative px-3 py-2 rounded-2xl shadow-sm
+          ${isMine
                             ? theme === "dark"
-                              ? "bg-[#005c4b] text-white rounded-br-none"
-                              : "bg-[#d9fdd3] text-black rounded-br-none"
+                              ? "bg-[#005c4b] text-white rounded-br-md"
+                              : "bg-[#d9fdd3] text-black rounded-br-md"
                             : theme === "dark"
-                              ? "bg-[#202c33] text-white rounded-bl-none"
-                              : "bg-white text-black rounded-bl-none"
+                              ? "bg-[#202c33] text-white rounded-bl-md"
+                              : "bg-white text-black rounded-bl-md"
                           }`}
                       >
                         {/* IMAGE */}
@@ -83,36 +164,16 @@ const MessageList = ({
                           <img
                             src={msg.imageOrVideoUrl}
                             alt=""
-                            className="rounded-lg mb-2 max-h-72 object-cover"
+                            className="rounded-xl mb-2 max-h-72 object-cover"
                           />
                         )}
 
                         {/* TEXT */}
                         {msg.content && (
-                          <p className="text-sm break-words">
+                          <p className="text-sm break-words whitespace-pre-wrap">
                             {msg.content}
                           </p>
                         )}
-
-                        {/* QUICK REACTIONS */}
-                        <div className="flex gap-1 mt-2">
-                          {quickReactions.map(
-                            (emoji) => (
-                              <button
-                                key={emoji}
-                                onClick={() =>
-                                  handleReaction(
-                                    msg._id,
-                                    emoji
-                                  )
-                                }
-                                className="opacity-0 group-hover:opacity-100 transition text-xs hover:scale-125"
-                              >
-                                {emoji}
-                              </button>
-                            )
-                          )}
-                        </div>
 
                         {/* TIME */}
                         <div className="flex justify-end items-center gap-1 mt-1">
@@ -146,10 +207,9 @@ const MessageList = ({
                         </div>
                       </div>
 
-                      {/* WHATSAPP STYLE REACTIONS */}
+                      {/* REACTION BADGE */}
                       {msg.reactions &&
-                        msg.reactions.length >
-                        0 && (
+                        msg.reactions.length > 0 && (
                           <div
                             className={`absolute -bottom-3 z-10 ${isMine
                               ? "right-2"
@@ -158,8 +218,8 @@ const MessageList = ({
                           >
                             <div
                               className={`flex items-center gap-1 px-2 py-[2px]
-                              rounded-full shadow-md text-xs border
-                              ${theme === "dark"
+                rounded-full shadow-md text-xs border
+                ${theme === "dark"
                                   ? "bg-[#202c33] text-white border-[#2f3b43]"
                                   : "bg-white text-black border-gray-200"
                                 }`}
@@ -167,8 +227,7 @@ const MessageList = ({
                               {[
                                 ...new Set(
                                   msg.reactions.map(
-                                    (r) =>
-                                      r.emoji
+                                    (r) => r.emoji
                                   )
                                 ),
                               ].map((emoji) => (
@@ -178,10 +237,7 @@ const MessageList = ({
                               ))}
 
                               <span className="text-[10px] opacity-70 ml-1">
-                                {
-                                  msg.reactions
-                                    .length
-                                }
+                                {msg.reactions.length}
                               </span>
                             </div>
                           </div>
